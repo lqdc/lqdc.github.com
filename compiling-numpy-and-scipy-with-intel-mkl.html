@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en-US">
+    <head>
+        <meta charset="utf-8"> 
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="author" content="Roman Sinayev" />
+        <meta name="copyright" content="Roman Sinayev" />
+
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary">
+
+<meta name="keywords" content=", compiling, " />
+
+<meta property="og:title" content="&#34;Compiling NumPy and SciPy with Intel MKL&#34; "/>
+<meta property="og:url" content="/compiling-numpy-and-scipy-with-intel-mkl.html" />
+<meta property="og:description" content="If you have an Intel processor, you can take advantage of the Intel MKL, which contains performance optimizations for math routines. Although it works with AMD processors too, Atlas seems to be a better choice there. Intel provides their own guide here, however they skip on some details. Below is ..." />
+<meta property="og:site_name" content="lqdc blog" />
+<meta property="og:article:author" content="Roman Sinayev" />
+<meta property="og:article:published_time" content="2013-04-07T07:09:00+02:00" />
+<meta name="twitter:title" content="&#34;Compiling NumPy and SciPy with Intel MKL&#34; ">
+<meta name="twitter:description" content="If you have an Intel processor, you can take advantage of the Intel MKL, which contains performance optimizations for math routines. Although it works with AMD processors too, Atlas seems to be a better choice there. Intel provides their own guide here, however they skip on some details. Below is ...">
+
+        <title>&#34;Compiling NumPy and SciPy with Intel MKL&#34;  · lqdc blog
+</title>
+        <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+        <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.1/css/font-awesome.css" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="/theme/css/pygments.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="/theme/tipuesearch/tipuesearch.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="/theme/css/elegant.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="/theme/css/custom.css" media="screen">
+<script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-60488389-1', 'auto');
+    ga('send', 'pageview');
+</script>
+    </head>
+    <body>
+        <div id="content-sans-footer">
+        <div class="navbar navbar-static-top">
+            <div class="navbar-inner">
+                <div class="container-fluid">
+                    <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </a>
+                    <a class="brand" href="/"><span class=site-name>lqdc blog</span></a>
+                    <div class="nav-collapse collapse">
+                        <ul class="nav pull-right top-menu">
+                            <li ><a href="">Home</a></li>
+                            <li ><a href="/categories.html">Categories</a></li>
+                            <li ><a href="/tags.html">Tags</a></li>
+                            <li ><a href="/archives.html">Archives</a></li>
+                            <li><form class="navbar-search" action="/search.html" onsubmit="return validateForm(this.elements['q'].value);"> <input type="text" class="search-query" placeholder="Search" name="q" id="tipue_search_input"></form></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span1"></div>
+                <div class="span10">
+<article>
+<div class="row-fluid">
+    <header class="page-header span10 offset2">
+    <h1><a href="/compiling-numpy-and-scipy-with-intel-mkl.html"> "Compiling NumPy and SciPy with Intel MKL"  </a></h1>
+    </header>
+</div>
+
+<div class="row-fluid">
+        <div class="span8 offset2 article-content">
+
+            
+            <p>If you have an Intel processor, you can take advantage of the Intel MKL, which contains performance optimizations for math routines.  Although it works with AMD processors too, Atlas seems to be a better choice there.</p>
+<p>Intel provides their own guide <a href="http://software.intel.com/en-us/articles/numpyscipy-with-intel-mkl">here</a>, however they skip on some details.</p>
+<p>Below is how I compiled and tested numpy-1.8, scipy-0.13, and Intel MKL-11.0 on Ubuntu 12.10.</p>
+<p><strong>1. See how fast your current numpy is:</strong></p>
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">)</span>
+<span class="o">%</span><span class="n">timeit</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
+</pre></div>
+
+
+<p>I get the following on an i5-3570k machine:</p>
+<div class="highlight"><pre><span class="mi">10</span> <span class="n">loops</span><span class="p">,</span> <span class="n">best</span> <span class="n">of</span> <span class="mi">3</span><span class="p">:</span> <span class="mf">68.7</span> <span class="n">ms</span> <span class="n">per</span> <span class="n">loop</span>
+</pre></div>
+
+
+<p>You can also check the default config <code>numpy.show_config()</code>.  On Ubuntu, the default is the following:</p>
+<div class="highlight"><pre><span class="n">blas_info</span><span class="o">:</span>
+    <span class="n">libraries</span> <span class="o">=</span> <span class="o">[</span><span class="s1">&#39;blas&#39;</span><span class="o">]</span>
+    <span class="n">library_dirs</span> <span class="o">=</span> <span class="o">[</span><span class="s1">&#39;/usr/lib&#39;</span><span class="o">]</span>
+    <span class="n">language</span> <span class="o">=</span> <span class="n">f77</span>
+<span class="n">lapack_info</span><span class="o">:</span>
+    <span class="n">libraries</span> <span class="o">=</span> <span class="o">[</span><span class="s1">&#39;lapack&#39;</span><span class="o">]</span>
+    <span class="n">library_dirs</span> <span class="o">=</span> <span class="o">[</span><span class="s1">&#39;/usr/lib&#39;</span><span class="o">]</span>
+    <span class="n">language</span> <span class="o">=</span> <span class="n">f77</span>
+<span class="n">atlas_threads_info</span><span class="o">:</span>
+  <span class="n">NOT</span> <span class="n">AVAILABLE</span>
+<span class="n">blas_opt_info</span><span class="o">:</span>
+    <span class="n">libraries</span> <span class="o">=</span> <span class="o">[</span><span class="s1">&#39;blas&#39;</span><span class="o">]</span>
+    <span class="n">library_dirs</span> <span class="o">=</span> <span class="o">[</span><span class="s1">&#39;/usr/lib&#39;</span><span class="o">]</span>
+    <span class="n">language</span> <span class="o">=</span> <span class="n">f77</span>
+    <span class="n">define_macros</span> <span class="o">=</span> <span class="o">[(</span><span class="s1">&#39;NO_ATLAS_INFO&#39;</span><span class="o">,</span> <span class="mi">1</span><span class="o">)]</span>
+<span class="n">atlas_blas_threads_info</span><span class="o">:</span>
+  <span class="n">NOT</span> <span class="n">AVAILABLE</span>
+<span class="n">lapack_opt_info</span><span class="o">:</span>
+    <span class="n">libraries</span> <span class="o">=</span> <span class="o">[</span><span class="s1">&#39;lapack&#39;</span><span class="o">,</span> <span class="s1">&#39;blas&#39;</span><span class="o">]</span>
+    <span class="n">library_dirs</span> <span class="o">=</span> <span class="o">[</span><span class="s1">&#39;/usr/lib&#39;</span><span class="o">]</span>
+    <span class="n">language</span> <span class="o">=</span> <span class="n">f77</span>
+    <span class="n">define_macros</span> <span class="o">=</span> <span class="o">[(</span><span class="s1">&#39;NO_ATLAS_INFO&#39;</span><span class="o">,</span> <span class="mi">1</span><span class="o">)]</span>
+<span class="n">atlas_info</span><span class="o">:</span>
+  <span class="n">NOT</span> <span class="n">AVAILABLE</span>
+<span class="n">lapack_mkl_info</span><span class="o">:</span>
+  <span class="n">NOT</span> <span class="n">AVAILABLE</span>
+<span class="n">blas_mkl_info</span><span class="o">:</span>
+  <span class="n">NOT</span> <span class="n">AVAILABLE</span>
+<span class="n">atlas_blas_info</span><span class="o">:</span>
+  <span class="n">NOT</span> <span class="n">AVAILABLE</span>
+<span class="n">mkl_info</span><span class="o">:</span>
+  <span class="n">NOT</span> <span class="n">AVAILABLE</span>
+</pre></div>
+
+
+<p><strong>2. Get the software:</strong></p>
+<p>Intel Compilers and MKL:</p>
+<p>Intel only provides MKL for free for Non-Commercial purposes.
+Get it from their site along with the compiler and a bunch of other useful stuff. I got the Intel Parallel Studio that includes the necessary icc and ifort compilers from <a href="http://software.intel.com/en-us/non-commercial-software-development">here</a>.</p>
+<p>SciPy and NumPy from Github:</p>
+<div class="highlight"><pre>git clone https://github.com/scipy/scipy.git
+git clone https://github.com/numpy/numpy.git
+</pre></div>
+
+
+<p><strong>3. Get rid of your old numpy and scipy (optional):</strong></p>
+<p>On Linux:</p>
+<div class="highlight"><pre>sudo apt-get remove python-numpy python-scipy
+<span class="c"># or do via pip uninstall if it was installed with pip</span>
+</pre></div>
+
+
+<p><strong>4. Install MKL and Intel/Fortran Compilers</strong></p>
+<p>Here you just download the software and run the bash script to install it.  On Linux the default installation dir is <code>/opt/intel/</code>. </p>
+<p>You should also add the environmental variables to your shell.  As per Intel's suggestion at the end of the installation, add something like the following to <code>.bashrc</code> or <code>.profile</code> or <code>.bash_profile</code>:
+<code>source /opt/intel/bin/compilervars.sh intel64</code>.  This runs a number of scripts that modify your <code>$LD_LIBRARY_PATH</code> variable.
+Now you should be able to call <code>icc --help</code> in a new terminal window.</p>
+<p><strong>5. Prepare NumPy for compilation</strong></p>
+<p>Go into the numpy directory you created and add the following to the <code>site.cfg</code> file:</p>
+<div class="highlight"><pre><span class="k">[mkl]</span>
+<span class="na">library_dirs</span> <span class="o">=</span> <span class="s">/opt/intel/mkl/composer_xe_2013/lib/intel64</span>
+<span class="na">include_dirs</span> <span class="o">=</span> <span class="s">/opt/intel/mkl/include</span>
+<span class="na">mkl_libs</span> <span class="o">=</span> <span class="s">mkl_rt</span>
+<span class="na">lapack_libs</span> <span class="o">=</span>
+</pre></div>
+
+
+<p>If you are building NumPy for 32 bit, please add as the following</p>
+<div class="highlight"><pre><span class="na">[mkl] library_dirs</span> <span class="o">=</span> <span class="s">/opt/intel/composer_xe_2013/mkl/lib/ia32</span>
+<span class="na">include_dirs</span> <span class="o">=</span> <span class="s">/opt/intel/mkl/include</span>
+<span class="na">mkl_libs</span> <span class="o">=</span> <span class="s">mkl_rt</span>
+<span class="na">lapack_libs</span> <span class="o">=</span>
+</pre></div>
+
+
+<p>Now modify <code>intelcompiler.py</code> in the <code>/numpy/numpy/distutils</code> directory:
+There are currently three classes in the file.  You would need to modify the one that's based on your architecture.
+If you use 64 bit, modify <code>IntelEM64TCCompiler</code> class by modifying <code>self.cc_exe</code> to be something like</p>
+<div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">cc_exe</span> <span class="o">=</span> <span class="s">&#39;icc -O3 -g -fPIC -fp-model strict -fomit-frame-pointer -openmp -xhost&#39;</span>
+</pre></div>
+
+
+<p>If you use 32 bit, modify the IntelCCompiler's <code>self.cc_exe</code> to something similar to the above.  </p>
+<p>The exact configuration is going to depend on your needs and computer, but you can check what all the options mean by running <code>icc --help</code>.</p>
+<p>Intel also suggests to modify the fortran compiler options, but they are already set to the suggested values.  In case you want to modify them, they are in <code>numpy/numpy/distutils/fcompiler/intel.py</code>.</p>
+<p><strong>6. Compile Numpy and Scipy</strong></p>
+<p>Run the following in the numpy directory:</p>
+<p><em>Replace <code>intelem</code> with <code>intel</code> on 32 bit machines.</em></p>
+<div class="highlight"><pre>python setup.py config --compiler<span class="o">=</span>intelem build_clib --compiler<span class="o">=</span>intelem build_ext --compiler<span class="o">=</span>intelem install
+</pre></div>
+
+
+<p>If you want to install to user home dir, add <code>--prefix=$HOME/.local</code>.</p>
+<p>Run the following in the scipy directory:</p>
+<p><em>Replace <code>intelem</code> with <code>intel</code> on 32 bit machines.</em></p>
+<div class="highlight"><pre>python setup.py config --compiler<span class="o">=</span>intelem --fcompiler<span class="o">=</span>intelem build_clib<span class="se">\</span>
+ --compiler<span class="o">=</span>intelem --fcompiler<span class="o">=</span>intelem build_ext --compiler<span class="o">=</span>intelem --fcompiler<span class="o">=</span>intelem install
+</pre></div>
+
+
+<p><strong>7. You're done!</strong></p>
+<p>Now, check the dot product again in a new terminal window:</p>
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">)</span>
+<span class="o">%</span><span class="n">timeit</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
+<span class="c"># 10 loops, best of 3: 23.1 ms per loop</span>
+</pre></div>
+
+
+<p>My <code>numpy.show_config()</code> looks like this:</p>
+<div class="highlight"><pre><span class="n">lapack_opt_info</span><span class="p">:</span>
+    <span class="n">libraries</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;mkl_rt&#39;</span><span class="p">,</span> <span class="s">&#39;pthread&#39;</span><span class="p">]</span>
+    <span class="n">library_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;/opt/intel/mkl/lib/intel64&#39;</span><span class="p">]</span>
+    <span class="n">define_macros</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&#39;SCIPY_MKL_H&#39;</span><span class="p">,</span> <span class="k">None</span><span class="p">)]</span>
+    <span class="n">include_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;/opt/intel/mkl/include&#39;</span><span class="p">]</span>
+<span class="n">blas_opt_info</span><span class="p">:</span>
+    <span class="n">libraries</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;mkl_rt&#39;</span><span class="p">,</span> <span class="s">&#39;pthread&#39;</span><span class="p">]</span>
+    <span class="n">library_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;/opt/intel/mkl/lib/intel64&#39;</span><span class="p">]</span>
+    <span class="n">define_macros</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&#39;SCIPY_MKL_H&#39;</span><span class="p">,</span> <span class="k">None</span><span class="p">)]</span>
+    <span class="n">include_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;/opt/intel/mkl/include&#39;</span><span class="p">]</span>
+<span class="n">lapack_mkl_info</span><span class="p">:</span>
+    <span class="n">libraries</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;mkl_rt&#39;</span><span class="p">,</span> <span class="s">&#39;pthread&#39;</span><span class="p">]</span>
+    <span class="n">library_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;/opt/intel/mkl/lib/intel64&#39;</span><span class="p">]</span>
+    <span class="n">define_macros</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&#39;SCIPY_MKL_H&#39;</span><span class="p">,</span> <span class="k">None</span><span class="p">)]</span>
+    <span class="n">include_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;/opt/intel/mkl/include&#39;</span><span class="p">]</span>
+<span class="n">blas_mkl_info</span><span class="p">:</span>
+    <span class="n">libraries</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;mkl_rt&#39;</span><span class="p">,</span> <span class="s">&#39;pthread&#39;</span><span class="p">]</span>
+    <span class="n">library_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;/opt/intel/mkl/lib/intel64&#39;</span><span class="p">]</span>
+    <span class="n">define_macros</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&#39;SCIPY_MKL_H&#39;</span><span class="p">,</span> <span class="k">None</span><span class="p">)]</span>
+    <span class="n">include_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;/opt/intel/mkl/include&#39;</span><span class="p">]</span>
+<span class="n">mkl_info</span><span class="p">:</span>
+    <span class="n">libraries</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;mkl_rt&#39;</span><span class="p">,</span> <span class="s">&#39;pthread&#39;</span><span class="p">]</span>
+    <span class="n">library_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;/opt/intel/mkl/lib/intel64&#39;</span><span class="p">]</span>
+    <span class="n">define_macros</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&#39;SCIPY_MKL_H&#39;</span><span class="p">,</span> <span class="k">None</span><span class="p">)]</span>
+    <span class="n">include_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;/opt/intel/mkl/include&#39;</span><span class="p">]</span>
+</pre></div>
+            
+            
+            <hr/>
+        </div>
+        <section>
+        <div class="span2" style="float:right;font-size:0.9em;">
+            <h4>Published</h4>
+            <time pubdate="pubdate" datetime="2013-04-07T07:09:00+02:00">Apr 7, 2013</time>
+            <h4>Category</h4>
+            <a class="category-link" href="/categories.html#compiling-ref">compiling</a>
+<h4>Contact</h4>
+    <a href="http://github.com/lqdc" title="My github Profile" class="sidebar-social-links" target="_blank">
+    <i class="fa fa-github sidebar-social-links"></i></a>
+        </div>
+        </section>
+</div>
+</article>
+                </div>
+                <div class="span1"></div>
+            </div>
+        </div>
+        <div id="push"></div>
+    </div>
+<footer>
+<div id="footer">
+    <ul class="footer-content">
+        <li class="elegant-power">Powered by <a href="http://getpelican.com/" title="Pelican Home Page">Pelican</a>. Theme: <a href="http://oncrashreboot.com/pelican-elegant" title="Theme Elegant Home Page">Elegant</a> by <a href="http://oncrashreboot.com" title="Talha Mansoor Home Page">Talha Mansoor</a></li>
+    </ul>
+</div>
+</footer>            <script src="http://code.jquery.com/jquery.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+        <script>
+            function validateForm(query)
+            {
+                return (query.length > 0);
+            }
+        </script>
+
+    
+    </body>
+    <!-- Theme: Elegant built for Pelican
+    License : http://oncrashreboot.com/pelican-elegant -->
+</html>
