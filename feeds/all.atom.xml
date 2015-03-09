@@ -193,7 +193,7 @@ Here, &lt;span class="math"&gt;\(t\)&lt;/span&gt; is the term, &lt;span class="m
 &lt;p&gt;So how do we figure out which
 If we re-frame the problem of figuring out a good name into the problem of labeling  parts of virus names and then combining the labels from different antiviruses, we can see it as a &lt;a href="http://en.wikipedia.org/wiki/Text_segmentation"&gt;text segmentation&lt;/a&gt; problem. &lt;/p&gt;
 &lt;p&gt;In our case, text segmentation can be used to infer what each part of a virus name means. That is, &lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="s"&gt;&amp;quot;Win32.MalwareFamily.uniqueid&amp;quot;&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="s"&gt;&amp;quot;Win32.Agent.1234&amp;quot;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
