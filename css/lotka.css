@@ -1,0 +1,45 @@
+label{
+    display: inline-block;
+    width: 300px;
+    text-align: right;
+}
+#lv_euler svg {
+  height: 400px;
+  width:  600px;
+}
+#lv_midpoint svg {
+  height: 400px;
+
+}
+#ml_midpoint svg{
+    height: 400px;
+
+}
+#ml_cnc svg{
+    height: 400px;
+
+}
+#ml_computers svg{
+    height: 400px;
+
+}
+
+fieldset{
+    width: 400px;
+}
+
+fieldset > p > br { display: none !important; }
+/*div > p > br { display: none !important; }*/
+
+input[type=number] {
+  width: 55px;
+}
+
+.left-float{
+  float: left;
+  margin-right: 20px;
+}
+
+.d3-special table{
+  table-layout: auto;
+}
