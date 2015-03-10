@@ -854,7 +854,7 @@ Here’s how a file with 100 lines of the word Hello looks on hexedit to a compu
 &lt;p&gt;In other words, &lt;strong&gt;we can simply use a built-in Windows tool to modify malware to bypass a mainstream antivirus&lt;/strong&gt;.&lt;/p&gt;
 &lt;p&gt;However, we would like to keep going and try to sneak FinFisher by as many antiviruses as possible.&lt;/p&gt;
 &lt;p&gt;Now, we’ll download Themida from its &lt;a href="http://www.oreans.com/themida.php&amp;quot;&amp;gt;official site"&gt;official site&lt;/a&gt; and use the demo version on our exe file with the default settings. This involves simply following through the menu options, so I will not show that here, but after packing, the standalone Bitdefender product doesn’t detect it:&lt;/p&gt;
-&lt;p&gt;&lt;img alt="themida bitdefender" src="{filename}/images/finfisher/bitdefender_themeda.png" /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="themida bitdefender" src="http://lqdc.github.io/images/finfisher/bitdefender_themida.png" /&gt;&lt;/p&gt;
 &lt;p&gt;And when we upload it to VirusTotal …
 &lt;img alt="themida" src="http://lqdc.github.io/images/finfisher/finfisher_themida.png" /&gt;&lt;/p&gt;
 &lt;p&gt;We are just left with 7. However, based on the malware names, it looks like at least some of the antiviruses are protesting against the Themida packer instead of the malware.&lt;/p&gt;
