@@ -80,8 +80,8 @@
             
             <p>Recently, <a href="https://wikileaks.org/spyfiles4/">Wikileaks revealed FinFisher</a>, a program used by governemnts to spy on journalists. Although it is claimed on the page that the malware is “previously unreleased”, we know that antivirus (AV) companies <strong>knew about it for almost 4 years</strong>, because someone uploaded it to VirusTotal close to 4 years ago:</p>
 <p><img alt="Finfisher Scan Date" src="http://lqdc.github.io/images/finfisher/ff_vt_ts.png" title="Finfisher Scan Date" /></p>
-<p>Since it’s been known as malware for so long, most antiviruses detect it as malicious:
-<img alt="vt of finfisher" src="http://lqdc.github.io/images/finfisher/finfisher_original.png" title="vt of finfisher" /></p>
+<p>Since it’s been known as malware for so long, most antiviruses detect it as malicious:</p>
+<p><img alt="vt of finfisher" src="http://lqdc.github.io/images/finfisher/finfisher_original.png" title="vt of finfisher" /></p>
 <p>Evading antivirus signatures, like those used on VirusTotal, is trivial. We will try to modify/obfuscate FinFisher so that it is neither detected by antiviruses on VirusTotal nor by two standalone products including <a href="http://us.norton.com/antivirus">Symantec Norton Antivirus 2014</a> and <a href="http://www.bitdefender.com/solutions/internet-security.html">BitDefender</a>.
 We want to test against standalone products because they may have more advanced detection strategies not employed by VirusTotal.
 These two antiviruses both <a href="http://www.pcmag.com/article2/0,2817,2460688,00.asp">1</a> <a href="http://www.pcmag.com/article2/0,2817,2424558,00.asp">2</a>
@@ -99,31 +99,31 @@ got awards on PCMagazine, so we are not cheating with easy targets.</p>
 <p>Packers are widely used by legitimate software to hide implementation details, while retaining the function of the software. This is necessary when the author of the software doesn’t want others to copy/distribute/improve upon the software without permission.</p>
 <p>An example of such a legitimate use case is when a video game company releases a demo of a game. Instead of bothering to remove all the functionality from the game, the developers can just have one line statement within it that would check if the license is just a demo license and remove functionality if it is. If such a game company doesn’t bother with an obfuscator/packer, it would be very easy for an expert in reverse engineering to enable the full functionality.</p>
 <p>A very naive form of obfuscation/packing is zip compression.
-Here’s how a file with 100 lines of the word Hello looks on hexedit to a computer:
-<img alt="Plain 100 lines of hello" src="http://lqdc.github.io/images/finfisher/hello.png" title="Plain 100 lines of hello" /></p>
+Here’s how a file with 100 lines of the word Hello looks on hexedit to a computer:</p>
+<p><img alt="Plain 100 lines of hello" src="http://lqdc.github.io/images/finfisher/hello.png" title="Plain 100 lines of hello" /></p>
 <p>Here’s how the same file looks when zipped:</p>
 <p><img alt="Hello Zipped" src="http://lqdc.github.io/images/finfisher/hello_zipped.png" /></p>
 <p>It wouldn’t be obvious to a person unfamiliar with zip compression that the compressed text corresponds to the original 100 lines of “Hello”. Other packers don’t make this process easy at all, especially if the antivirus has not encountered the packer before.</p>
-<p>Here’s a landscape of the currently available off-the-shelf packers (taken from <a href="http://forensicmethods.com/executablepackers">http://forensicmethods.com/executablepackers</a>)
-<img alt="Current Packers" src="http://lqdc.github.io/images/finfisher/Packers.png" /></p>
+<p>Here’s a landscape of the currently available off-the-shelf packers (taken from <a href="http://forensicmethods.com/executablepackers">http://forensicmethods.com/executablepackers</a>)</p>
+<p><img alt="Current Packers" src="http://lqdc.github.io/images/finfisher/Packers.png" /></p>
 <h3>Commercial Legal packers and FUD (Fully UnDetectable) packers.</h3>
 <p>When a malware author wants to obfuscate malware, they would want to use the same strategies as someone using packers legitimately.</p>
 <p>One solution for a malware author is to use a commercial FUD malware packer. These are new packers that haven’t yet been seen by antiviruses and that can be used to package any malware so that it wouldn’t be detected by antiviruses. One can purchase these packers either on the open internet e.g. <a href="http://www.best-fud-crypters.com/">Best-Fud</a>, the operation of which is shown <a href="https://www.youtube.com/watch?v=cg5BP_2_ijc">here</a>.
 <strong>Please don’t try to use this packer. I have not tested it. It may contain malware itself.</strong></p>
 <p>Another solution is to go to a hidden services market such as Silk Road 2 and purchase a new FUD malware packer. Since the packer isn’t known to the AV companies ahead of time, they wouldn’t be able to come up with a good signature for it.</p>
-<p>A third solution is to simply buy a legitimate packer such as <a href="http://www.oreans.com/themida.php">Themeda</a>. This way it’s not malware authors battling antivirus vendors, where antivirus vendors are free to label the FUD crypter itself as malware, but the whole software obfuscation industry vs antivirus vendors, where labeling anything packed by the packer as malware is not an option. In fact, even the latest malware deobfuscation techniques <a href="http://www.covert.io/research-papers/security/Eureka%20-%20A%20framework%20for%20enabling%20static%20malware%20analysis.pdf">struggle</a> with some of the commercial packers.</p>
+<p>A third solution is to simply buy a legitimate packer such as <a href="http://www.oreans.com/themida.php">Themida</a>. This way it’s not malware authors battling antivirus vendors, where antivirus vendors are free to label the FUD crypter itself as malware, but the whole software obfuscation industry vs antivirus vendors, where labeling anything packed by the packer as malware is not an option. In fact, even the latest malware deobfuscation techniques <a href="http://www.covert.io/research-papers/security/Eureka%20-%20A%20framework%20for%20enabling%20static%20malware%20analysis.pdf">struggle</a> with some of the commercial packers.</p>
 <h3>Let’s get to it!</h3>
-<p>We’ll try to obfuscate/pack FinFisher, so that no antivirus detects it. We will try to only use free/demo versions of obfuscators, including the windows built in IExpress bundler, demo version of Themeda and demo version of VMProtect packer.</p>
+<p>We’ll try to obfuscate/pack FinFisher, so that no antivirus detects it. We will try to only use free/demo versions of obfuscators, including the windows built in IExpress bundler, demo version of Themida and demo version of VMProtect packer.</p>
 <p>To begin, let’s see where we stand with detection of the original file. We already saw the Virustotal results, but let’s see what the standalone packers say.</p>
-<p>Norton AV:
-<img alt="symantec finfisher" src="http://lqdc.github.io/images/finfisher/symantec_raw.png" /></p>
-<p>And by Bitdefender:
-<img alt="bitdefender raw" src="http://lqdc.github.io/images/finfisher/bitdefender_raw.png" /></p>
+<p>Norton AV:</p>
+<p><img alt="symantec finfisher" src="http://lqdc.github.io/images/finfisher/symantec_raw.png" /></p>
+<p>And by Bitdefender:</p>
+<p><img alt="bitdefender raw" src="http://lqdc.github.io/images/finfisher/bitdefender_raw.png" /></p>
 <p>Yup, a known malicious 4 year old malware.</p>
 <p>First, let’s try to use IExpress to package the original FinFisher file downloaded from WikiLeaks. Here’s how to do it:</p>
 <p><img alt="iexpress demo" src="http://lqdc.github.io/images/finfisher/ParallelWiltedAcouchi.gif" /></p>
-<p>And after uploading the resulting file to VirusTotal, we get this result:
-<img alt="finfisher iexpress" src="http://lqdc.github.io/images/finfisher/finfisher_iexpress.png" /></p>
+<p>And after uploading the resulting file to VirusTotal, we get this result:</p>
+<p><img alt="finfisher iexpress" src="http://lqdc.github.io/images/finfisher/finfisher_iexpress.png" /></p>
 <p>A little better, but all the common antiviruses still detect it. This includes Bitdefender standalone:</p>
 <p><img alt="BitDefender" src="http://lqdc.github.io/images/finfisher/bitdefender_iexpress.png" /></p>
 <p>However, NortonAV doesn’t:</p>
@@ -132,8 +132,8 @@ Here’s how a file with 100 lines of the word Hello looks on hexedit to a compu
 <p>However, we would like to keep going and try to sneak FinFisher by as many antiviruses as possible.</p>
 <p>Now, we’ll download Themida from its <a href="http://www.oreans.com/themida.php&quot;&gt;official site">official site</a> and use the demo version on our exe file with the default settings. This involves simply following through the menu options, so I will not show that here, but after packing, the standalone Bitdefender product doesn’t detect it:</p>
 <p><img alt="themida bitdefender" src="http://lqdc.github.io/images/finfisher/bitdefender_themida.png" /></p>
-<p>And when we upload it to VirusTotal …
-<img alt="themida" src="http://lqdc.github.io/images/finfisher/finfisher_themida.png" /></p>
+<p>And when we upload it to VirusTotal …</p>
+<p><img alt="themida" src="http://lqdc.github.io/images/finfisher/finfisher_themida.png" /></p>
 <p>We are just left with 7. However, based on the malware names, it looks like at least some of the antiviruses are protesting against the Themida packer instead of the malware.</p>
 <p>Just to be sure, let’s package Windows Media Player with Themida and test the final product on VirusTotal:</p>
 <p><img alt="themida_wmp" src="http://lqdc.github.io/images/finfisher/wmplayer_themida.png" /></p>
@@ -229,8 +229,8 @@ that it consumes. To make one file, we just run IExpress again to bundle them to
 <p><img alt="custom_1" src="http://lqdc.github.io/images/finfisher/ff_custom1.png" /></p>
 <p>Bkav again fighting a good fight.</p>
 <p>Let’s trick it by doing the same thing we did with commercial packers - add some images to the file.</p>
-<p>After adding the images, let’s upload to VirusTotal again:
-<img alt="custom_2" src="http://lqdc.github.io/images/finfisher/final_bin_custom_2.png" /></p>
+<p>After adding the images, let’s upload to VirusTotal again:</p>
+<p><img alt="custom_2" src="http://lqdc.github.io/images/finfisher/final_bin_custom_2.png" /></p>
 <p>Success! We now have a FUD packer.</p>
 <div id="chart"></div>
 
