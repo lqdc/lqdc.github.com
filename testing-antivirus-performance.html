@@ -10,18 +10,18 @@
         <meta property="og:type" content="article" />
         <meta name="twitter:card" content="summary">
 
-<meta name="keywords" content="malware, malware, " />
+<meta name="keywords" content="malware, testing, malware, " />
 
-<meta property="og:title" content="“Indistinguishability obfuscation” and malware detection "/>
-<meta property="og:url" content="http://lqdc.github.io/indistinguishability-obfuscation-and-malware-detection.html" />
-<meta property="og:description" content="Recent breakthroughs in cryptography, widely reported on in the media showed that it is possible to reassemble any given program into a mathematical jigsaw puzzle so complicated that, although it functions identically to the original, divining its purpose without running it is effectively impossible. We’ll look at the security ..." />
+<meta property="og:title" content="Testing Antivirus Performance "/>
+<meta property="og:url" content="http://lqdc.github.io/testing-antivirus-performance.html" />
+<meta property="og:description" content="There are lots of malware testing companies/websites/articles including av-tests, av-comparatives, PCmag, and toptenreviews. All of them disagree about which product is better every year and also change their opinion about the best ones every now and then. The performance of the top AVs on these sites is always ..." />
 <meta property="og:site_name" content="lqdc blog" />
 <meta property="og:article:author" content="Roman Sinayev" />
-<meta property="og:article:published_time" content="2014-10-03T17:46:00-07:00" />
-<meta name="twitter:title" content="“Indistinguishability obfuscation” and malware detection ">
-<meta name="twitter:description" content="Recent breakthroughs in cryptography, widely reported on in the media showed that it is possible to reassemble any given program into a mathematical jigsaw puzzle so complicated that, although it functions identically to the original, divining its purpose without running it is effectively impossible. We’ll look at the security ...">
+<meta property="og:article:published_time" content="2015-04-11T02:22:00-07:00" />
+<meta name="twitter:title" content="Testing Antivirus Performance ">
+<meta name="twitter:description" content="There are lots of malware testing companies/websites/articles including av-tests, av-comparatives, PCmag, and toptenreviews. All of them disagree about which product is better every year and also change their opinion about the best ones every now and then. The performance of the top AVs on these sites is always ...">
 
-        <title>“Indistinguishability obfuscation” and malware detection  · lqdc blog
+        <title>Testing Antivirus Performance  · lqdc blog
 </title>
         <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
         <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.1/css/font-awesome.css" rel="stylesheet">
@@ -70,7 +70,7 @@
 <article>
 <div class="row-fluid">
     <header class="page-header span10 offset2">
-    <h1><a href="http://lqdc.github.io/indistinguishability-obfuscation-and-malware-detection.html"> “Indistinguishability obfuscation” and malware detection  </a></h1>
+    <h1><a href="http://lqdc.github.io/testing-antivirus-performance.html"> Testing Antivirus Performance  </a></h1>
     </header>
 </div>
 
@@ -78,24 +78,43 @@
         <div class="span8 offset2 article-content">
 
             
-            <p>Recent <a href="http://eprint.iacr.org/2013/451.pdf">breakthroughs</a> in cryptography, widely <a href="http://www.simonsfoundation.org/quanta/20140130-perfecting-the-art-of-sensible-nonsense/">reported</a> on in the media showed that it is possible to reassemble any given program into a mathematical jigsaw puzzle so complicated that, although it functions identically to the original, divining its purpose without running it is effectively impossible. We’ll look at the security implications of these findings.</p>
-<p>Do the results imply that any malware program can be obfuscated to be indistinguishable from benign programs?</p>
-<p>No.</p>
-<p>This is because there are restrictions on this obfuscation. Specifically, the authors only show the possibility of “indistinguishability obfuscation”, which really means that if one obfuscates two different programs which perform the same function, they would still function like the non-obfuscated versions, taking the same inputs from the outside environment and outputting the same outputs, but it would be impossible to tell them apart.</p>
-<p>More specifically, they show that given two programs <code>A</code> and <code>B</code>, where <code>A'</code> is obfuscated version of <code>A</code> and <code>B'</code> is an obfuscated verion of <code>B</code>, where both take in <code>x</code> as input and have <code>y</code> as output, we would not be able to distinguish between
-<code>A'(x) =&gt; y</code> and <code>B'(x) =&gt; y</code>.
-Here we can’t tell whether <code>A’</code> is an obfuscated version of <code>A</code> or <code>B</code>.</p>
-<p>This is useful because <code>A</code> might be an implementation where the behavior of the program was completely transparent while <code>B</code> might be an implementation written by highly skilled programmers who spent a thousand years making every effort to hide the inner workings of the program: after obfuscation, program <code>A’</code> is at least as hard to analyze as program <code>B’</code>. Moreover, <code>B</code> represents any possible program that performs the same function as <code>A</code>; actually writing <code>B</code> is unnecessary.</p>
-<p>If such an obfuscator is created for a commonly used programming language and if it is commonly used by benign software, it will make malware impossible to detect using static analysis, precisely because static analysis relies on analyzing implementation details. If someone were to obfuscate malware, it would still behave like malware, but it wouldn’t be possible to determine how the malware is implemented.</p>
-<p>While static analysis would be fruitless, this does not imply that malware obfuscated in this way would be impossible to detect. A sandbox would still be able to detect this new program, because it can look at the program’s behavior when interacting with the outside environment, which would be malicious by definition.</p>
-<p>So although the results are very interesting, they do not imply that any malware obfuscated in this way would be impossible to detect.</p>
+            <p>There are lots of malware testing companies/websites/articles including <a href="http://www.av-test.org/en/">av-tests</a>, <a href="http://www.av-comparatives.org">av-comparatives</a>, <a href="http://www.pcmag.com/article2/0,2817,2388652,00.asp">PCmag</a>, and <a href="http://anti-virus-software-review.toptenreviews.com/">toptenreviews</a>.</p>
+<p>All of them disagree about which product is better every year and also change their opinion about the best ones every now and then.  The performance of the top AVs on these sites is always very close to 100% detection.</p>
+<p>This seems very strange.</p>
+<p>The problem of course is that testing the antiviruses performance well is very difficult.</p>
+<p>Here are some of the issues that make it challenging:</p>
+<ul>
+<li>
+<p>Need for sandboxing each and every malware while hiding the fact that it is a sandbox environment and allowing the malware to make network connections.</p>
+</li>
+<li>
+<p>Automating execution of the malware (Automatically clicking on dialogs, etc)</p>
+</li>
+<li>
+<p>Providing a good non-duplicated dataset for both malware and goodware that has not been seen by the AV vendors</p>
+</li>
+<li>
+<p>Streamlining acquisition of new malware/goodware</p>
+</li>
+<li>
+<p>Setting correct settings on the Antivirus programs</p>
+</li>
+</ul>
+<p>Basically, all of these things are difficult and probably not done correctly by any of the testing vendors.</p>
+<p>Such high detection rate (close to 100%) is impossible because malware authors have access to the antiviruses and can keep playing around with their program until it is undetectable by their chosen AVs.</p>
+<p>If the testing institution was able to develop an undetectable-by-malware sandbox and an automated way to click through all the software dialogs mimicing a user, they would be more than halfway there to becoming a new antivirus vendor.</p>
+<p>Another major issue is that each person is exposed to a different set of malware.</p>
+<p>Some people download shady torrents, some people follow chain emails and download and execute attachments, some people cannot tell the difference between results on google and ads on google searches (which can contain adware which can then download more serious malware).</p>
+<p>For example, searching for downloading firefox results in the second link being a adware page.</p>
+<p><img alt="Firefox Download first result on Google search" src="http://lqdc.github.io/images/testing-malware/firefox_download.png" title="Firefox Download first result" /></p>
+<p>So different detection rates apply differently to different people, and the actual detection rates and antivirus performance for a particular individual remains a mystery to the general public.</p>
             
             <section>
 <div class="accordion" id="accordion2">
     <div class="accordion-group">
         <div class="accordion-heading">
             <a class="accordion-toggle disqus-comment-count" data-toggle="collapse" data-parent="#accordion2"
-                href="http://lqdc.github.io/indistinguishability-obfuscation-and-malware-detection.html#disqus_thread">
+                href="http://lqdc.github.io/testing-antivirus-performance.html#disqus_thread">
                 Comments
             </a>
         </div>
@@ -105,8 +124,8 @@ Here we can’t tell whether <code>A’</code> is an obfuscated version of <code
                     <div id="disqus_thread"></div>
 <script type="text/javascript">
     var disqus_shortname = 'codellama';
-        var disqus_identifier = 'http://lqdc.github.io/indistinguishability-obfuscation-and-malware-detection.html';
-    var disqus_url = 'http://lqdc.github.io/indistinguishability-obfuscation-and-malware-detection.html';
+        var disqus_identifier = 'http://lqdc.github.io/testing-antivirus-performance.html';
+    var disqus_url = 'http://lqdc.github.io/testing-antivirus-performance.html';
 
     (function() {
          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
@@ -129,13 +148,16 @@ Here we can’t tell whether <code>A’</code> is an obfuscated version of <code
         <section>
         <div class="span2" style="float:right;font-size:0.9em;">
             <h4>Published</h4>
-            <time pubdate="pubdate" datetime="2014-10-03T17:46:00-07:00">Oct 3, 2014</time>
+            <time pubdate="pubdate" datetime="2015-04-11T02:22:00-07:00">Apr 11, 2015</time>
             <h4>Category</h4>
             <a class="category-link" href="http://lqdc.github.io/categories.html#malware-ref">malware</a>
             <h4>Tags</h4>
             <ul class="list-of-tags tags-in-article">
                 <li><a href="http://lqdc.github.io/tags.html#malware-ref">malware
                     <span>5</span>
+</a></li>
+                <li><a href="http://lqdc.github.io/tags.html#testing-ref">testing
+                    <span>1</span>
 </a></li>
             </ul>
 <h4>Contact</h4>

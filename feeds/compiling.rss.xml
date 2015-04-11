@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>lqdc blog</title><link>http://lqdc.github.io/</link><description></description><atom:link href="http://lqdc.github.io/feeds/compiling.rss.xml" rel="self"></atom:link><lastBuildDate>Sun, 07 Apr 2013 07:09:00 -0700</lastBuildDate><item><title>Compiling NumPy and SciPy with Intel MKL</title><link>http://lqdc.github.io/compiling-numpy-and-scipy-with-intel-mkl.html</link><description>&lt;p&gt;If you have an Intel processor, you can take advantage of the Intel MKL, which contains performance optimizations for math routines.  Although it works with AMD processors too, Atlas seems to be a better choice there.&lt;/p&gt;
+&lt;p&gt;Intel provides their own guide &lt;a href="http://software.intel.com/en-us/articles/numpyscipy-with-intel-mkl"&gt;here&lt;/a&gt;, however they skip on some details.&lt;/p&gt;
+&lt;p&gt;Below is how I compiled and tested numpy-1.8, scipy-0.13, and Intel MKL-11.0 on Ubuntu 12.10.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;1. See how fast your current numpy is:&lt;/strong&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;numpy&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="nn"&gt;np&lt;/span&gt;
+&lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;np&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;random&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;rand&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1000&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;1000&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;b&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;np&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;random&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;rand&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1000&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;1000&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="n"&gt;timeit&lt;/span&gt; &lt;span class="n"&gt;np&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;dot&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;I get the following on an i5-3570k machine:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="mi"&gt;10&lt;/span&gt; &lt;span class="n"&gt;loops&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;best&lt;/span&gt; &lt;span class="n"&gt;of&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mf"&gt;68.7&lt;/span&gt; &lt;span class="n"&gt;ms&lt;/span&gt; &lt;span class="n"&gt;per&lt;/span&gt; &lt;span class="n"&gt;loop&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;You can also check the default config &lt;code&gt;numpy.show_config()&lt;/code&gt;.  On Ubuntu, the default is the following:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;blas_info&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;libraries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;blas&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;library_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;/usr/lib&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;language&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;f77&lt;/span&gt;
+&lt;span class="n"&gt;lapack_info&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;libraries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;lapack&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;library_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;/usr/lib&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;language&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;f77&lt;/span&gt;
+&lt;span class="n"&gt;atlas_threads_info&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;NOT&lt;/span&gt; &lt;span class="n"&gt;AVAILABLE&lt;/span&gt;
+&lt;span class="n"&gt;blas_opt_info&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;libraries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;blas&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;library_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;/usr/lib&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;language&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;f77&lt;/span&gt;
+    &lt;span class="n"&gt;define_macros&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;[(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;NO_ATLAS_INFO&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;)]&lt;/span&gt;
+&lt;span class="n"&gt;atlas_blas_threads_info&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;NOT&lt;/span&gt; &lt;span class="n"&gt;AVAILABLE&lt;/span&gt;
+&lt;span class="n"&gt;lapack_opt_info&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;libraries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;lapack&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;blas&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;library_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;/usr/lib&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;language&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;f77&lt;/span&gt;
+    &lt;span class="n"&gt;define_macros&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;[(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;NO_ATLAS_INFO&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;)]&lt;/span&gt;
+&lt;span class="n"&gt;atlas_info&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;NOT&lt;/span&gt; &lt;span class="n"&gt;AVAILABLE&lt;/span&gt;
+&lt;span class="n"&gt;lapack_mkl_info&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;NOT&lt;/span&gt; &lt;span class="n"&gt;AVAILABLE&lt;/span&gt;
+&lt;span class="n"&gt;blas_mkl_info&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;NOT&lt;/span&gt; &lt;span class="n"&gt;AVAILABLE&lt;/span&gt;
+&lt;span class="n"&gt;atlas_blas_info&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;NOT&lt;/span&gt; &lt;span class="n"&gt;AVAILABLE&lt;/span&gt;
+&lt;span class="n"&gt;mkl_info&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;NOT&lt;/span&gt; &lt;span class="n"&gt;AVAILABLE&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;strong&gt;2. Get the software:&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Intel Compilers and MKL:&lt;/p&gt;
+&lt;p&gt;Intel only provides MKL for free for Non-Commercial purposes.
+Get it from their site along with the compiler and a bunch of other useful stuff. I got the Intel Parallel Studio that includes the necessary icc and ifort compilers from &lt;a href="http://software.intel.com/en-us/non-commercial-software-development"&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;SciPy and NumPy from Github:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;git clone https://github.com/scipy/scipy.git
+git clone https://github.com/numpy/numpy.git
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;strong&gt;3. Get rid of your old numpy and scipy (optional):&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;On Linux:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;sudo apt-get remove python-numpy python-scipy
+&lt;span class="c"&gt;# or do via pip uninstall if it was installed with pip&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;strong&gt;4. Install MKL and Intel/Fortran Compilers&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Here you just download the software and run the bash script to install it.  On Linux the default installation dir is &lt;code&gt;/opt/intel/&lt;/code&gt;. &lt;/p&gt;
+&lt;p&gt;You should also add the environmental variables to your shell.  As per Intel's suggestion at the end of the installation, add something like the following to &lt;code&gt;.bashrc&lt;/code&gt; or &lt;code&gt;.profile&lt;/code&gt; or &lt;code&gt;.bash_profile&lt;/code&gt;:
+&lt;code&gt;source /opt/intel/bin/compilervars.sh intel64&lt;/code&gt;.  This runs a number of scripts that modify your &lt;code&gt;$LD_LIBRARY_PATH&lt;/code&gt; variable.
+Now you should be able to call &lt;code&gt;icc --help&lt;/code&gt; in a new terminal window.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;5. Prepare NumPy for compilation&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Go into the numpy directory you created and add the following to the &lt;code&gt;site.cfg&lt;/code&gt; file:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;[mkl]&lt;/span&gt;
+&lt;span class="na"&gt;library_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;/opt/intel/mkl/composer_xe_2013/lib/intel64&lt;/span&gt;
+&lt;span class="na"&gt;include_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;/opt/intel/mkl/include&lt;/span&gt;
+&lt;span class="na"&gt;mkl_libs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;mkl_rt&lt;/span&gt;
+&lt;span class="na"&gt;lapack_libs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;If you are building NumPy for 32 bit, please add as the following&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="na"&gt;[mkl] library_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;/opt/intel/composer_xe_2013/mkl/lib/ia32&lt;/span&gt;
+&lt;span class="na"&gt;include_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;/opt/intel/mkl/include&lt;/span&gt;
+&lt;span class="na"&gt;mkl_libs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;mkl_rt&lt;/span&gt;
+&lt;span class="na"&gt;lapack_libs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Now modify &lt;code&gt;intelcompiler.py&lt;/code&gt; in the &lt;code&gt;/numpy/numpy/distutils&lt;/code&gt; directory:
+There are currently three classes in the file.  You would need to modify the one that's based on your architecture.
+If you use 64 bit, modify &lt;code&gt;IntelEM64TCCompiler&lt;/code&gt; class by modifying &lt;code&gt;self.cc_exe&lt;/code&gt; to be something like&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cc_exe&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;icc -O3 -g -fPIC -fp-model strict -fomit-frame-pointer -openmp -xhost&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;If you use 32 bit, modify the IntelCCompiler's &lt;code&gt;self.cc_exe&lt;/code&gt; to something similar to the above.  &lt;/p&gt;
+&lt;p&gt;The exact configuration is going to depend on your needs and computer, but you can check what all the options mean by running &lt;code&gt;icc --help&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Intel also suggests to modify the fortran compiler options, but they are already set to the suggested values.  In case you want to modify them, they are in &lt;code&gt;numpy/numpy/distutils/fcompiler/intel.py&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;6. Compile Numpy and Scipy&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Run the following in the numpy directory:&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Replace &lt;code&gt;intelem&lt;/code&gt; with &lt;code&gt;intel&lt;/code&gt; on 32 bit machines.&lt;/em&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;python setup.py config --compiler&lt;span class="o"&gt;=&lt;/span&gt;intelem build_clib --compiler&lt;span class="o"&gt;=&lt;/span&gt;intelem build_ext --compiler&lt;span class="o"&gt;=&lt;/span&gt;intelem install
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;If you want to install to user home dir, add &lt;code&gt;--prefix=$HOME/.local&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Run the following in the scipy directory:&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Replace &lt;code&gt;intelem&lt;/code&gt; with &lt;code&gt;intel&lt;/code&gt; on 32 bit machines.&lt;/em&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;python setup.py config --compiler&lt;span class="o"&gt;=&lt;/span&gt;intelem --fcompiler&lt;span class="o"&gt;=&lt;/span&gt;intelem build_clib&lt;span class="se"&gt;\&lt;/span&gt;
+ --compiler&lt;span class="o"&gt;=&lt;/span&gt;intelem --fcompiler&lt;span class="o"&gt;=&lt;/span&gt;intelem build_ext --compiler&lt;span class="o"&gt;=&lt;/span&gt;intelem --fcompiler&lt;span class="o"&gt;=&lt;/span&gt;intelem install
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;strong&gt;7. You're done!&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Now, check the dot product again in a new terminal window:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;numpy&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="nn"&gt;np&lt;/span&gt;
+&lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;np&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;random&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;rand&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1000&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;1000&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;b&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;np&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;random&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;rand&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1000&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;1000&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="n"&gt;timeit&lt;/span&gt; &lt;span class="n"&gt;np&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;dot&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="c"&gt;# 10 loops, best of 3: 23.1 ms per loop&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;My &lt;code&gt;numpy.show_config()&lt;/code&gt; looks like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;lapack_opt_info&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;libraries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;mkl_rt&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;pthread&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;library_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;/opt/intel/mkl/lib/intel64&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;define_macros&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;SCIPY_MKL_H&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;None&lt;/span&gt;&lt;span class="p"&gt;)]&lt;/span&gt;
+    &lt;span class="n"&gt;include_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;/opt/intel/mkl/include&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;blas_opt_info&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;libraries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;mkl_rt&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;pthread&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;library_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;/opt/intel/mkl/lib/intel64&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;define_macros&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;SCIPY_MKL_H&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;None&lt;/span&gt;&lt;span class="p"&gt;)]&lt;/span&gt;
+    &lt;span class="n"&gt;include_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;/opt/intel/mkl/include&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;lapack_mkl_info&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;libraries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;mkl_rt&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;pthread&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;library_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;/opt/intel/mkl/lib/intel64&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;define_macros&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;SCIPY_MKL_H&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;None&lt;/span&gt;&lt;span class="p"&gt;)]&lt;/span&gt;
+    &lt;span class="n"&gt;include_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;/opt/intel/mkl/include&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;blas_mkl_info&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;libraries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;mkl_rt&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;pthread&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;library_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;/opt/intel/mkl/lib/intel64&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;define_macros&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;SCIPY_MKL_H&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;None&lt;/span&gt;&lt;span class="p"&gt;)]&lt;/span&gt;
+    &lt;span class="n"&gt;include_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;/opt/intel/mkl/include&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;mkl_info&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;libraries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;mkl_rt&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;pthread&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;library_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;/opt/intel/mkl/lib/intel64&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;define_macros&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;SCIPY_MKL_H&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;None&lt;/span&gt;&lt;span class="p"&gt;)]&lt;/span&gt;
+    &lt;span class="n"&gt;include_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;/opt/intel/mkl/include&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Roman Sinayev</dc:creator><pubDate>Sun, 07 Apr 2013 07:09:00 -0700</pubDate><guid>tag:lqdc.github.io,2013-04-07:compiling-numpy-and-scipy-with-intel-mkl.html</guid><category>MKL</category><category>numpy</category><category>scipy</category></item></channel></rss>
