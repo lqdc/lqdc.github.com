@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en-US">
+    <head>
+        <meta charset="utf-8"> 
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="author" content="Roman Sinayev" />
+        <meta name="copyright" content="Roman Sinayev" />
+
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary">
+
+<meta name="keywords" content="malware, testing, malware, " />
+
+<meta property="og:title" content="On Antivirus Performance Testing "/>
+<meta property="og:url" content="http://lqdc.github.io/on-antivirus-performance-testing.html" />
+<meta property="og:description" content="There are lots of malware testing companies/websites/articles including av-tests, av-comparatives, PCmag, and toptenreviews. All of them disagree about which product is better every year and also change their opinion about the best ones every now and then. The performance of the top AVs on these sites is always ..." />
+<meta property="og:site_name" content="lqdc blog" />
+<meta property="og:article:author" content="Roman Sinayev" />
+<meta property="og:article:published_time" content="2015-04-11T02:22:00-07:00" />
+<meta name="twitter:title" content="On Antivirus Performance Testing ">
+<meta name="twitter:description" content="There are lots of malware testing companies/websites/articles including av-tests, av-comparatives, PCmag, and toptenreviews. All of them disagree about which product is better every year and also change their opinion about the best ones every now and then. The performance of the top AVs on these sites is always ...">
+
+        <title>On Antivirus Performance Testing  · lqdc blog
+</title>
+        <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+        <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.1/css/font-awesome.css" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="http://lqdc.github.io/theme/css/pygments.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="http://lqdc.github.io/theme/tipuesearch/tipuesearch.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="http://lqdc.github.io/theme/css/elegant.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="http://lqdc.github.io/theme/css/custom.css" media="screen">
+        <link href="http://lqdc.github.io/feed.xml" type="application/atom+xml" rel="alternate" title="lqdc blog - Full Atom Feed" />
+<script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-60488389-1', 'auto');
+    ga('send', 'pageview');
+</script>
+    </head>
+    <body>
+        <div id="content-sans-footer">
+        <div class="navbar navbar-static-top">
+            <div class="navbar-inner">
+                <div class="container-fluid">
+                    <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </a>
+                    <a class="brand" href="http://lqdc.github.io/"><span class=site-name>lqdc blog</span></a>
+                    <div class="nav-collapse collapse">
+                        <ul class="nav pull-right top-menu">
+                            <li ><a href="http://lqdc.github.io">Home</a></li>
+                            <li ><a href="http://lqdc.github.io/categories.html">Categories</a></li>
+                            <li ><a href="http://lqdc.github.io/tags.html">Tags</a></li>
+                            <li ><a href="http://lqdc.github.io/archives.html">Archives</a></li>
+                            <li><form class="navbar-search" action="http://lqdc.github.io/search.html" onsubmit="return validateForm(this.elements['q'].value);"> <input type="text" class="search-query" placeholder="Search" name="q" id="tipue_search_input"></form></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span1"></div>
+                <div class="span10">
+<article>
+<div class="row-fluid">
+    <header class="page-header span10 offset2">
+    <h1><a href="http://lqdc.github.io/on-antivirus-performance-testing.html"> On Antivirus Performance Testing  </a></h1>
+    </header>
+</div>
+
+<div class="row-fluid">
+        <div class="span8 offset2 article-content">
+
+            
+            <p>There are lots of malware testing companies/websites/articles including <a href="http://www.av-test.org/en/">av-tests</a>, <a href="http://www.av-comparatives.org">av-comparatives</a>, <a href="http://www.pcmag.com/article2/0,2817,2388652,00.asp">PCmag</a>, and <a href="http://anti-virus-software-review.toptenreviews.com/">toptenreviews</a>.</p>
+<p>All of them disagree about which product is better every year and also change their opinion about the best ones every now and then.  The performance of the top AVs on these sites is always very close to 100% detection.</p>
+<p>This seems very strange.</p>
+<p>The problem of course is that testing the antiviruses performance well is very difficult.</p>
+<p>Here are some of the issues that make it challenging:</p>
+<ul>
+<li>
+<p>Need for sandboxing each and every malware while hiding the fact that it is a sandbox environment and allowing the malware to make network connections.</p>
+</li>
+<li>
+<p>Automating execution of the malware (Automatically clicking on dialogs, etc)</p>
+</li>
+<li>
+<p>Providing a good non-duplicated dataset for both malware and goodware that has not been seen by the AV vendors</p>
+</li>
+<li>
+<p>Streamlining acquisition of new malware/goodware</p>
+</li>
+<li>
+<p>Setting correct settings on the Antivirus programs</p>
+</li>
+</ul>
+<p>Basically, all of these things are difficult and probably not done correctly by any of the testing vendors.</p>
+<p>Such high detection rate (close to 100%) is impossible because malware authors have access to the antiviruses and can keep playing around with their program until it is undetectable by their chosen AVs.</p>
+<p>If the testing institution was able to develop an undetectable-by-malware sandbox and an automated way to click through all the software dialogs mimicing a user, they would be more than halfway there to becoming a new antivirus vendor.</p>
+<p>Another major issue is that each person is exposed to a different set of malware.</p>
+<p>Some people download shady torrents, some people follow chain emails and download and execute attachments, some people cannot tell the difference between results on google and ads on google searches (which can contain adware which can then download more serious malware).</p>
+<p>For example, searching for downloading firefox results in the second link being a adware page.</p>
+<p><img alt="Firefox Download first result on Google search" src="http://lqdc.github.io/images/testing-malware/firefox_download.png" title="Firefox Download first result" /></p>
+<p>So different detection rates apply differently to different people, and the actual detection rates and antivirus performance for a particular individual remains a mystery to the general public.</p>
+            
+            <section>
+<div class="accordion" id="accordion2">
+    <div class="accordion-group">
+        <div class="accordion-heading">
+            <a class="accordion-toggle disqus-comment-count" data-toggle="collapse" data-parent="#accordion2"
+                href="http://lqdc.github.io/on-antivirus-performance-testing.html#disqus_thread">
+                Comments
+            </a>
+        </div>
+        <div id="disqus_thread" class="accordion-body collapse">
+            <div class="accordion-inner">
+                <div class="comments">
+                    <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'codellama';
+        var disqus_identifier = 'http://lqdc.github.io/on-antivirus-performance-testing.html';
+    var disqus_url = 'http://lqdc.github.io/on-antivirus-performance-testing.html';
+
+    (function() {
+         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+         dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+         (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+     })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+
+            <hr/>
+        </div>
+        <section>
+        <div class="span2" style="float:right;font-size:0.9em;">
+            <h4>Published</h4>
+            <time pubdate="pubdate" datetime="2015-04-11T02:22:00-07:00">Apr 11, 2015</time>
+            <h4>Category</h4>
+            <a class="category-link" href="http://lqdc.github.io/categories.html#malware-ref">malware</a>
+            <h4>Tags</h4>
+            <ul class="list-of-tags tags-in-article">
+                <li><a href="http://lqdc.github.io/tags.html#malware-ref">malware
+                    <span>5</span>
+</a></li>
+                <li><a href="http://lqdc.github.io/tags.html#testing-ref">testing
+                    <span>1</span>
+</a></li>
+            </ul>
+<h4>Contact</h4>
+    <a href="http://github.com/lqdc" title="My github Profile" class="sidebar-social-links" target="_blank">
+    <i class="fa fa-github sidebar-social-links"></i></a>
+    <a href="http://rsinayev.com" title="My home Profile" class="sidebar-social-links" target="_blank">
+    <i class="fa fa-home sidebar-social-links"></i></a>
+        </div>
+        </section>
+</div>
+</article>
+                </div>
+                <div class="span1"></div>
+            </div>
+        </div>
+        <div id="push"></div>
+    </div>
+<footer>
+<div id="footer">
+    <ul class="footer-content">
+        <li class="elegant-power">Powered by <a href="http://getpelican.com/" title="Pelican Home Page">Pelican</a>. Theme: <a href="http://oncrashreboot.com/pelican-elegant" title="Theme Elegant Home Page">Elegant</a> by <a href="http://oncrashreboot.com" title="Talha Mansoor Home Page">Talha Mansoor</a></li>
+    </ul>
+</div>
+</footer>            <script src="http://code.jquery.com/jquery.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+        <script>
+            function validateForm(query)
+            {
+                return (query.length > 0);
+            }
+        </script>
+
+            <script type="text/javascript">
+var disqus_shortname = 'codellama';
+(function () {
+    var s = document.createElement('script'); s.async = true;
+    s.type = 'text/javascript';
+    s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+    (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+}());
+</script>
+<script  language="javascript" type="text/javascript">
+function uncollapse() {
+    if (window.location.hash.match(/^#comment-\d+$/)) {
+        $('#disqus_thread').collapse('show');
+    }
+}
+</script>
+<script type="text/javascript" language="JavaScript">
+uncollapse();
+window.onhashchange=function(){
+    if (window.location.hash.match(/^#comment-\d+$/))
+        window.location.reload(true);
+}
+</script>
+<script>
+$('#disqus_thread').on('shown', function () {
+    var link = document.getElementsByClassName('accordion-toggle');
+    var old_innerHTML = link[0].innerHTML;
+    $(link[0]).fadeOut(500, function() {
+        $(this).text('Click here to hide comments').fadeIn(500);
+    });
+    $('#disqus_thread').on('hidden', function () {
+        $(link[0]).fadeOut(500, function() {
+            $(this).text(old_innerHTML).fadeIn(500);
+        });
+    })
+})
+</script>
+
+
+    </body>
+    <!-- Theme: Elegant built for Pelican
+    License : http://oncrashreboot.com/pelican-elegant -->
+</html>
