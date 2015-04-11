@@ -1,0 +1,1189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>lqdc blog</title><link href="http://lqdc.github.io/" rel="alternate"></link><link href="http://lqdc.github.io/feed.xml" rel="self"></link><id>http://lqdc.github.io/</id><updated>2015-04-11T02:22:00-07:00</updated><entry><title>Testing Antivirus Performance</title><link href="http://lqdc.github.io/testing-antivirus-performance.html" rel="alternate"></link><updated>2015-04-11T02:22:00-07:00</updated><author><name>Roman Sinayev</name></author><id>tag:lqdc.github.io,2015-04-11:testing-antivirus-performance.html</id><summary type="html">&lt;p&gt;There are lots of malware testing companies/websites/articles including &lt;a href="http://www.av-test.org/en/"&gt;av-tests&lt;/a&gt;, &lt;a href="http://www.av-comparatives.org"&gt;av-comparatives&lt;/a&gt;, &lt;a href="http://www.pcmag.com/article2/0,2817,2388652,00.asp"&gt;PCmag&lt;/a&gt;, and &lt;a href="http://anti-virus-software-review.toptenreviews.com/"&gt;toptenreviews&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;All of them disagree about which product is better every year and also change their opinion about the best ones every now and then.  The performance of the top AVs on these sites is always very close to 100% detection.&lt;/p&gt;
+&lt;p&gt;This seems very strange.&lt;/p&gt;
+&lt;p&gt;The problem of course is that testing the antiviruses performance well is very difficult.&lt;/p&gt;
+&lt;p&gt;Here are some of the issues that make it challenging:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Need for sandboxing each and every malware while hiding the fact that it is a sandbox environment and allowing the malware to make network connections.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Automating execution of the malware (Automatically clicking on dialogs, etc)&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Providing a good non-duplicated dataset for both malware and goodware that has not been seen by the AV vendors&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Streamlining acquisition of new malware/goodware&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Setting correct settings on the Antivirus programs&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Basically, all of these things are difficult and probably not done correctly by any of the testing vendors.&lt;/p&gt;
+&lt;p&gt;Such high detection rate (close to 100%) is impossible because malware authors have access to the antiviruses and can keep playing around with their program until it is undetectable by their chosen AVs.&lt;/p&gt;
+&lt;p&gt;If the testing institution was able to develop an undetectable-by-malware sandbox and an automated way to click through all the software dialogs mimicing a user, they would be more than halfway there to becoming a new antivirus vendor.&lt;/p&gt;
+&lt;p&gt;Another major issue is that each person is exposed to a different set of malware.&lt;/p&gt;
+&lt;p&gt;Some people download shady torrents, some people follow chain emails and download and execute attachments, some people cannot tell the difference between results on google and ads on google searches (which can contain adware which can then download more serious malware).&lt;/p&gt;
+&lt;p&gt;For example, searching for downloading firefox results in the second link being a adware page.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Firefox Download first result on Google search" src="http://lqdc.github.io/images/testing-malware/firefox_download.png" title="Firefox Download first result" /&gt;&lt;/p&gt;
+&lt;p&gt;So different detection rates apply differently to different people, and the actual detection rates and antivirus performance for a particular individual remains a mystery to the general public.&lt;/p&gt;</summary><category term="malware"></category><category term="testing"></category></entry><entry><title>Modeling Zero Day Malware Spread</title><link href="http://lqdc.github.io/modeling-zero-day-malware-spread.html" rel="alternate"></link><updated>2015-03-09T03:03:00-07:00</updated><author><name>Roman Sinayev</name></author><id>tag:lqdc.github.io,2015-03-09:modeling-zero-day-malware-spread.html</id><summary type="html">&lt;blockquote&gt;
+&lt;p&gt;All models are wrong, but some are useful.&lt;/p&gt;
+&lt;p&gt;-- &lt;cite&gt;George E. P. Box&lt;/cite&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Does installing an antivirus that catches 2% more malware really make a difference? Should antiviruses try to concentrate on catching yet unknown malware requiring a small delay or is it acceptable if they primarily rely on simpler and faster signature-based detection? These and many other questions can be answered by modeling the behavior of malware and later mapping it to existing malware infection data.&lt;/p&gt;
+&lt;p&gt;In this post we will try to apply a modeling technique commonly used for epidemic and population modeling to predict the spread of malware. However, first we should go over a simple application of differential equations to model monthly fluctuations in populations of foxes and rabbits, because although the application is very different, the equations are not.&lt;/p&gt;
+&lt;h2&gt;Foxes and Rabbits&lt;/h2&gt;
+&lt;p&gt;&lt;img alt="Fox and Rabbit by Phil Haynes" src="http://lqdc.github.io/images/rabbits-foxes/fox_rabbit.jpg" /&gt;&lt;/p&gt;
+&lt;p&gt;First, let’s establish what we are trying to model. We are interested in figuring out how the populations of foxes and rabbits fluctuate over time. We know that rabbits would multiply exponentially if there were no predators. We know that for foxes to grow and flourish there need to be some rabbits around as they are the food source. We also know that both foxes and rabbits can die of old age. There are many other things that are true about foxes and rabbits, but let’s say that these are the main contributors to the population dynamics.&lt;/p&gt;
+&lt;p&gt;Luckily for us, there already exists a pair of equations that can be used to model just this scenario. They are called Lotka-Volterra equations and different variations of these equations are used in ecology and epidemiology to model animal population dynamics and disease proliferation.&lt;/p&gt;
+&lt;p&gt;Without further ado, the equations are below:&lt;/p&gt;
+&lt;div class="math"&gt;$$
+\begin{align}
+\frac{dx}{dt}&amp;amp;=x (a-by-c)\\
+\frac{dy}{dt}&amp;amp;=y (ebx-\delta)
+\end{align}
+$$&lt;/div&gt;
+&lt;p&gt;In the first part, we see that &lt;span class="math"&gt;\(dx/dt\)&lt;/span&gt;, or change in &lt;span class="math"&gt;\(x\)&lt;/span&gt; (the rabbit population) over time, is assumed to grow (&lt;span class="math"&gt;\(xa\)&lt;/span&gt;) unless subject to predation (&lt;span class="math"&gt;\(-bxy\)&lt;/span&gt;) and rabbits dying of old age (&lt;span class="math"&gt;\(-cx\)&lt;/span&gt;).&lt;/p&gt;
+&lt;p&gt;In the second part, we see that &lt;span class="math"&gt;\(dy/dt\)&lt;/span&gt;, or change of &lt;span class="math"&gt;\(y\)&lt;/span&gt; (the fox population) over time is dictated by the rate of rabbit consumption (&lt;span class="math"&gt;\(ebxy\)&lt;/span&gt;) and natural death of foxes over time (&lt;span class="math"&gt;\(\delta y\)&lt;/span&gt;). A more detailed explanation is found on the &lt;a href="http://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equation#Physical_meanings_of_the_equations"&gt;equation wiki page&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Integrating these analytically can be daunting especially if there are more equations and variables. We'll use a simple numerical integration technique called &lt;a href="http://en.wikipedia.org/wiki/Midpoint_method"&gt;Midpoint Method&lt;/a&gt; to integrate the equation numerically and actually observe these trends.&lt;/p&gt;
+&lt;p&gt;A future point depends only on the previous point. So the population of rabbits tomorrow can be estimated from knowing today's populations of both foxes and rabbits.&lt;/p&gt;
+&lt;p&gt;In Python, to calculate &lt;span class="math"&gt;\(x_{t+1}\)&lt;/span&gt; and &lt;span class="math"&gt;\(y_{t+1}\)&lt;/span&gt; for each day &lt;span class="math"&gt;\(t\)&lt;/span&gt; in &lt;span class="math"&gt;\(\{0..730\}\)&lt;/span&gt;, we can do the following:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;numpy&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="nn"&gt;np&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;pylab&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="nn"&gt;pl&lt;/span&gt;
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;calc_lv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;y&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;coefs&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="n"&gt;x_new&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;coefs&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;a&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;coefs&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;b&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;y&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;coefs&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;c&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+    &lt;span class="n"&gt;y_new&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;y&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;coefs&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;e&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;coefs&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;b&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;coefs&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;d&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;x_new&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;y_new&lt;/span&gt;
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;midpoint_method_lotka&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;t&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;y&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;coefs&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;dt&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;N&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;N&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;dx1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;dy1&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;calc_lv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;y&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;coefs&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;dx2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;dy2&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;calc_lv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;dt&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;dx1&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;y&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;dt&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;dy1&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;coefs&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;dt&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;dx2&lt;/span&gt;
+        &lt;span class="n"&gt;y&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;y&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;dt&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;dy2&lt;/span&gt;
+        &lt;span class="n"&gt;t&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;dt&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;t&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;y&lt;/span&gt;
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;do_lotka&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mf"&gt;0.04&lt;/span&gt;
+    &lt;span class="n"&gt;b&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mf"&gt;0.0005&lt;/span&gt;
+    &lt;span class="n"&gt;c&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mf"&gt;0.0001&lt;/span&gt;
+    &lt;span class="n"&gt;d&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mf"&gt;0.2&lt;/span&gt;
+    &lt;span class="n"&gt;e&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mf"&gt;0.1&lt;/span&gt;
+    &lt;span class="n"&gt;dt&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mf"&gt;0.01&lt;/span&gt;
+    &lt;span class="n"&gt;days&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;730&lt;/span&gt;
+    &lt;span class="n"&gt;N&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;int&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;days&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="n"&gt;dt&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;coefs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;a&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;b&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;c&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;d&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;e&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;y&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;t&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;np&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;zeros&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;N&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+    &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;200&lt;/span&gt;  &lt;span class="c"&gt;# Initial prey data&lt;/span&gt;
+    &lt;span class="n"&gt;y&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;50&lt;/span&gt;   &lt;span class="c"&gt;# Initial predator data&lt;/span&gt;
+    &lt;span class="n"&gt;t&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;y&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;midpoint_method_lotka&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;t&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;y&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;coefs&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;dt&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;N&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;pl&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plot&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;t&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;g&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;t&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;y&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;r&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;pl&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;show&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Implementing it in JavaScript results in the following graph where you can play with the coefficients:&lt;/p&gt;
+&lt;!--&lt;style&gt;table{table-layout:auto;}&lt;/style&gt;--&gt;
+
+&lt;div id="lv_midpoint" class="d3-special"&gt;
+    &lt;svg&gt;&lt;/svg&gt;
+&lt;/div&gt;
+
+&lt;div "text-align: right;"&gt;
+&lt;div style="float: left;"&gt;Rabbit Growth (a) = &lt;span id="aValue-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="1.0" step="0.005" value="0.04" id="aValueLotka"&gt;&lt;/div&gt;
+
+&lt;div style="float: right;"&gt; Fox Predation (b) = &lt;span id="bValue-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="1.0" step="0.0001" value="0.0005" id="bValueLotka"&gt;&lt;/div&gt;
+
+&lt;div style="clear: both;"&gt;&lt;/div&gt;
+
+&lt;div style="float: left;"&gt;Rabbit Natural Death (c) = &lt;span id="cValue-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="1.0" step="0.0001" value="0.0001" id="cValueLotka"&gt;&lt;/div&gt;
+
+&lt;div style="float:right;"&gt;Fox Natural Death (delta) = &lt;span id="dValue-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="1.0" step="0.01" value="0.05" id="dValueLotka"&gt;&lt;/div&gt;
+
+&lt;div style="clear: both;"&gt;&lt;/div&gt;
+
+&lt;div style="float: left;"&gt;Fox Growth Multiplier (e) = &lt;span id="eValue-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="1.0" step="0.01" value="0.1" id="eValueLotka"&gt;&lt;/div&gt;
+
+&lt;div style="float: right;"&gt;Starting Rabbit Num (x_0) = &lt;span id="x0Value-value"&gt;&lt;/span&gt;&lt;input type="number" min="1" max="100000" step="1" value="200" id="x0ValueLotka"&gt;&lt;/div&gt;
+
+&lt;div style="clear: both;"&gt;&lt;/div&gt;
+
+&lt;div style="float: left;"&gt;Starting Fox Num (y_0) = &lt;span id="y0Value-value"&gt;&lt;/span&gt;&lt;input type="number" min="1" max="100000" step="1" value="50" id="y0ValueLotka"&gt;&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div style="clear: both; margin-bottom: 20px;"&gt;&lt;/div&gt;
+
+&lt;p&gt;From the plots you can see that the populations are oscillating. The foxes die off when there are no rabbits. Since there are fewer foxes, rabbits’ population increases. As soon as the rabbit population starts increasing, the fox population also starts increasing.  A larger number of foxes eats rabbits faster than they multiply, so rabbit population drops and the cycle continues.&lt;/p&gt;
+&lt;p&gt;This demonstrates that if we know (or make assumptions about) some rules of interaction between distinct populations, then we can write down some differential equations and analyze the dynamics of these populations.&lt;/p&gt;
+&lt;h2&gt;Onto Malware&lt;/h2&gt;
+&lt;p&gt;To model the spread of malware, we will use the same paradigm but design it a little differently to reflect the nature of malware proliferation. Specifically, we will simply use our knowledge of how malware can spread to design equations that allow us to model and analyze the dynamics of its proliferation.&lt;/p&gt;
+&lt;p&gt;We are going to model a network of computers that periodically talk to each other. The network can be a TCP/IP network or just some computers that share information via USB drives.&lt;/p&gt;
+&lt;p&gt;Vulnerable computers can be infected with 2 types of malware – known malware and so-called 0-Day malware. The distinction here is that AV companies have signatures for known malware.&lt;/p&gt;
+&lt;p&gt;Once a computer is infected and that infection is detected, it can be quarantined. Here quarantined means that a sysadmin has isolated it from the rest of the network. After the computer is quarantined it is disinfected and then put back on the network.&lt;/p&gt;
+&lt;p&gt;Antivirus companies periodically update their signatures, so computers infected with unidentified malware eventually get converted to an infection with identified known malware, i.e. malware they were infected with can become “known”.
+Malware writers are more likely to write malware if there are a large number of known-vulnerable computers and some number of active malware already in the wild. This way the effect of each malware would be amplified and they could improve upon extant malware.&lt;/p&gt;
+&lt;p&gt;Malware periodically stops working and bad domain/IP lists are periodically updated to block C&amp;amp;C server traffic.
+0-Day malware is harder to write, but it is probably written better and has a higher chance of succeeding.&lt;/p&gt;
+&lt;p&gt;We can express these ideas with differential equations. One way to do it is the following:&lt;/p&gt;
+&lt;div class="math"&gt;$$
+\begin{align}
+\frac{dV}{dt}&amp;amp;=-\epsilon V^k(1-e^{-a_0 Z}) + bQ -c V^k(1-e^{-a W})\\
+\frac{dI}{dt}&amp;amp;=c V^k(1-e^{-aW}) - fI_t + h U\\
+\frac{dQ}{dt}&amp;amp;= fI - bQ + gU\\
+\frac{dU}{dt}&amp;amp;= \epsilon V^k (1-e^{-a_0 Z}) - U (g+h)\\
+\frac{dW}{dt}&amp;amp;= l (1-e^{-p W}) V^k - m W\\
+\frac{dZ}{dt}&amp;amp;=n (1-e^{-p_0 Z})V^k - o Z\\
+\end{align}
+$$&lt;/div&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;span class="math"&gt;\(V\)&lt;/span&gt; or the &lt;strong&gt;Vulnerable&lt;/strong&gt; population is the normal population of computers within a network that have a potential to get malware.&lt;/li&gt;
+&lt;li&gt;&lt;span class="math"&gt;\(Q\)&lt;/span&gt; or the &lt;strong&gt;Quarantined&lt;/strong&gt; population are the computers that have been quarantined after a sysadmin found some malware on the machine and decided to take it off the network so that it doesn’t infect other computers.&lt;/li&gt;
+&lt;li&gt;&lt;span class="math"&gt;\(I\)&lt;/span&gt; or the Computers &lt;strong&gt;Infected&lt;/strong&gt; with malware.&lt;/li&gt;
+&lt;li&gt;&lt;span class="math"&gt;\(U\)&lt;/span&gt; or the  Computers infected with &lt;strong&gt;Unidentified&lt;/strong&gt; malware/0-Days.&lt;/li&gt;
+&lt;li&gt;&lt;span class="math"&gt;\(W\)&lt;/span&gt; or the regular &lt;strong&gt;Worm&lt;/strong&gt;/Malware C&amp;amp;C server population is the number of known malware in the wild.&lt;/li&gt;
+&lt;li&gt;&lt;span class="math"&gt;\(Z\)&lt;/span&gt; or the &lt;strong&gt;0-Day Worm&lt;/strong&gt;/Malware C&amp;amp;C population.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;The coefficients mean the following:&lt;/p&gt;
+&lt;p&gt;&lt;span class="math"&gt;\(c\)&lt;/span&gt; and &lt;span class="math"&gt;\(\epsilon\)&lt;/span&gt; are the probabilities that a given known malware and 0-Day malware, respectively, would be functional and not immediately detected.&lt;/p&gt;
+&lt;p&gt;&lt;span class="math"&gt;\(a\)&lt;/span&gt; and &lt;span class="math"&gt;\(a_0\)&lt;/span&gt; are the coefficients of expected infected computers where &lt;span class="math"&gt;\(aW\)&lt;/span&gt; and &lt;span class="math"&gt;\(a_0 Z\)&lt;/span&gt; are the expected number of new infected computers for regular malware and 0-Days, respectively.&lt;/p&gt;
+&lt;p&gt;&lt;span class="math"&gt;\(f\)&lt;/span&gt; is the catch rate of known malware when it already exists on a machine.&lt;/p&gt;
+&lt;p&gt;&lt;span class="math"&gt;\(h\)&lt;/span&gt; is the fraction of unknown malware that is discovered and labeled as malware by AV companies every day.&lt;/p&gt;
+&lt;p&gt;&lt;span class="math"&gt;\(b\)&lt;/span&gt; is the fraction of quarantined computers that become disinfected and go back on the network.  This is really the response time of a SysAdmin/IT forensics in dealing with known infections.&lt;/p&gt;
+&lt;p&gt;&lt;span class="math"&gt;\(g\)&lt;/span&gt; is the catch rate of unknown malware.  This is in the same role as &lt;span class="math"&gt;\(f\)&lt;/span&gt;, but here no signatures exist.&lt;/p&gt;
+&lt;p&gt;&lt;span class="math"&gt;\(k\)&lt;/span&gt; is the clustering coefficient for computers.  That is, within a set of computers that share information among themselves, it is possible that there are clusters of computers that are more connected (e.g.: sharing USB drives).&lt;/p&gt;
+&lt;p&gt;&lt;span class="math"&gt;\(l\)&lt;/span&gt; and &lt;span class="math"&gt;\(n\)&lt;/span&gt; are the coefficients of malware and 0-Day malware growth.&lt;/p&gt;
+&lt;p&gt;&lt;span class="math"&gt;\(m\)&lt;/span&gt; and &lt;span class="math"&gt;\(o\)&lt;/span&gt; are the coeffients for reduction in number of C&amp;amp;C servers.  These could either represent malware no longer working because it is not compatible with system updates or C&amp;amp;C servers getting blacklisted.&lt;/p&gt;
+&lt;p&gt;&lt;span class="math"&gt;\(p\)&lt;/span&gt; and &lt;span class="math"&gt;\(p_0\)&lt;/span&gt; are the coefficients of expected number of  C&amp;amp;C servers where &lt;span class="math"&gt;\(pW\)&lt;/span&gt; and &lt;span class="math"&gt;\(p_0Z\)&lt;/span&gt; are the expected number of new C&amp;amp;C servers for regular malware and 0-Days, respectively.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt;
+&lt;span class="math"&gt;\(e^{-aW}\)&lt;/span&gt; represents the fraction of computers &lt;strong&gt;not&lt;/strong&gt; infected according to a &lt;a href="http://en.wikipedia.org/wiki/Poisson_distribution" title="http://en.wikipedia.org/wiki/Poisson_distribution"&gt;Poisson distribution&lt;/a&gt; with a value of &lt;span class="math"&gt;\(0\)&lt;/span&gt;.  That is, &lt;span class="math"&gt;\(\frac{\lambda^k e^{-\lambda}}{k!}\)&lt;/span&gt; where &lt;span class="math"&gt;\(k=0\)&lt;/span&gt; and &lt;span class="math"&gt;\(\lambda=a\)&lt;/span&gt;.  Since there are &lt;span class="math"&gt;\(W\)&lt;/span&gt; malware in the wild, the equation becomes &lt;span class="math"&gt;\(e^{-a^W}\)&lt;/span&gt; or &lt;span class="math"&gt;\(e^{-aW}\)&lt;/span&gt;. Therefore &lt;span class="math"&gt;\(1-e^{-aW}\)&lt;/span&gt; represents the fraction that &lt;strong&gt;is&lt;/strong&gt; infected. &lt;span class="math"&gt;\(aW\)&lt;/span&gt; then represents the Poisson parameter of expected number of computers infected per day.  We use a Poisson distribution here because it can be used to predict frequencies of occurrences of rare events.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;This version of the model assumes the following:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Infected computers cannot infect others directly.&lt;/li&gt;
+&lt;li&gt;All vulnerable computers are equally likely to be infected.&lt;/li&gt;
+&lt;li&gt;There is only one infection per computer.&lt;/li&gt;
+&lt;li&gt;Probabilities of infection are given by a Poisson distribution.&lt;/li&gt;
+&lt;li&gt;One malware entity per C&amp;amp;C server.&lt;/li&gt;
+&lt;li&gt;Total number of computers remains the same.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;To integrate these numerically, we will use midpoint method again.  You can find the python implementation for that &lt;a href="https://gist.githubusercontent.com/lqdc/b171c280fbf543c7831c/raw/48f119f7e8c54efe0cb4487268c31dbd97198659/model.py"&gt;here&lt;/a&gt;.  It is also implemented/plotted below in JS, so you can play with the coefficients of the malware diagram here:&lt;/p&gt;
+&lt;div id="ml_computers" class="d3-special"&gt;
+  &lt;svg&gt;&lt;/svg&gt;
+&lt;/div&gt;
+
+&lt;div&gt;
+&lt;div class="left-float"&gt;a = &lt;span id="aValMal-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="1.0" step="0.0001" value="0.0001" id="aValMal"&gt;
+&lt;/div&gt;
+
+&lt;div class="left-float"&gt;a_0 = &lt;span id="a0ValMal-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="1.0" step="0.001" value="0.001" id="a0ValMal"&gt;
+&lt;/div&gt;
+
+&lt;div class="left-float"&gt;b = &lt;span id="bValMal-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="1.0" step="0.01" value="1.0" id="bValMal"&gt;
+&lt;/div&gt;
+
+&lt;div class="left-float"&gt;c = &lt;span id="cValMal-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="1.0" step="0.01" value="0.2" id="cValMal"&gt;
+&lt;/div&gt;
+
+&lt;div class="left-float"&gt;f = &lt;span id="fValMal-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="1.0" step="0.01" value="0.9" id="fValMal"&gt;&lt;/div&gt;
+
+&lt;div class="left-float"&gt;epsilon = &lt;span id="eValMal-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="1.0" step="0.1" value="0.8" id="eValMal"&gt;
+&lt;/div&gt;
+
+&lt;div class="left-float"&gt;g = &lt;span id="gValMal-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="1.0" step="0.1" value="0.2" id="gValMal"&gt;
+&lt;/div&gt;
+
+&lt;div class="left-float"&gt;
+h = &lt;span id="hValMal-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="1.0" step="0.1" value="1.0" id="hValMal"&gt;
+  &lt;/div&gt;
+
+&lt;div class="left-float"&gt;
+k = &lt;span id="kValMal-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="3.0" step="0.1" value="1.0" id="kValMal"&gt;
+&lt;/div&gt;
+
+&lt;div class="left-float"&gt;
+l = &lt;span id="lValMal-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="1.0" step="0.1" value="1.0" id="lValMal"&gt;
+&lt;/div&gt;
+
+&lt;div class="left-float"&gt;
+m =  &lt;span id="mValMal-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="1.0" step="0.1" value="0.3" id="mValMal"&gt;
+&lt;/div&gt;
+
+&lt;div class="left-float"&gt;
+n = &lt;span id="nValMal-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="1.0" step="0.1" value="0.1" id="nValMal"&gt;
+&lt;/div&gt;
+
+&lt;div class="left-float"&gt;
+o =  &lt;span id="oValMal-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="1.0" step="0.1" value="0.3" id="oValMal"&gt;
+&lt;/div&gt;
+
+&lt;div class="left-float"&gt;
+p =  &lt;span id="pValMal-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="1.0" step="0.01" value="0.05" id="pValMal"&gt;
+&lt;/div&gt;
+
+&lt;div class="left-float"&gt;
+p_0 =  &lt;span id="pValMal-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="1.0" step="0.01" value="0.08" id="pValMal"&gt;
+&lt;/div&gt;
+
+&lt;div class="left-float"&gt;
+W_0 = &lt;span id="W0ValMal-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="1000000" step="1" value="100" id="W0ValMal"&gt;
+&lt;/div&gt;
+
+&lt;div class="left-float"&gt;
+Z_0 = &lt;span id="Z0ValMal-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="1000000" step="1" value="10" id="Z0ValMal"&gt;
+  &lt;/div&gt;
+
+&lt;div class="left-float"&gt;
+V_0 = &lt;span id="V0ValMal-value"&gt;&lt;/span&gt;&lt;input type="number" min="1" max="100000" step="1" value="989" id="V0ValMal"&gt;
+  &lt;/div&gt;
+
+&lt;div class="left-float"&gt;
+Q_0 = &lt;span id="Q0ValMal-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="100000" step="1" value="0" id="Q0ValMal"&gt;
+&lt;/div&gt;
+
+&lt;div class="left-float"&gt;
+I_0 = &lt;span id="I0ValMal-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="100000" step="1" value="10" id="I0ValMal"&gt;
+&lt;/div&gt;
+
+&lt;div class="left-float"&gt;
+U_0 = &lt;span id="U0ValMal-value"&gt;&lt;/span&gt;&lt;input type="number" min="0" max="100000" step="1" value="1" id="U0ValMal"&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;/div&gt;
+&lt;div style="clear: both;"&gt;&lt;/div&gt;&lt;/p&gt;
+&lt;div id="ml_cnc" class="d3-special"&gt;
+  &lt;svg&gt;&lt;/svg&gt;
+&lt;/div&gt;
+
+&lt;h3&gt;Meaning and Implications&lt;/h3&gt;
+&lt;p&gt;To figure out what the model implies and represents we will set some coefficients to zero or 1.&lt;/p&gt;
+&lt;p&gt;Setting &lt;span class="math"&gt;\(c\)&lt;/span&gt; and &lt;span class="math"&gt;\(l\)&lt;/span&gt; to zero removes the effects of known malware, while setting &lt;span class="math"&gt;\(\epsilon\)&lt;/span&gt; and &lt;span class="math"&gt;\(n\)&lt;/span&gt; to zero removes the effects of 0-Days.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="No 0-Days." src="http://lqdc.github.io/images/rabbits-foxes/e0n0.png" title="No 0-Days." /&gt;&lt;/p&gt;
+&lt;p&gt;If we set &lt;span class="math"&gt;\(b\)&lt;/span&gt; to zero, this could represent a very lazy IT department that never fixes infected quarantined computers.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Lazy IT/forensics department." src="http://lqdc.github.io/images/rabbits-foxes/b0.png" title="Lazy IT/forensics department" /&gt;  On the other hand, setting &lt;span class="math"&gt;\(b\)&lt;/span&gt; to &lt;span class="math"&gt;\(1\)&lt;/span&gt;, can represent a very active IT department that fixes all infected computers within a day.&lt;/p&gt;
+&lt;p&gt;If we set &lt;span class="math"&gt;\(f\)&lt;/span&gt; and &lt;span class="math"&gt;\(g\)&lt;/span&gt; to &lt;span class="math"&gt;\(1\)&lt;/span&gt;, we have a situation where all malware is detected after just one day of being in the wild.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Malware detected within one day." src="http://lqdc.github.io/images/rabbits-foxes/f1g1.png" title="Malware detected within one day." /&gt;&lt;/p&gt;
+&lt;p&gt;This could be a future sandbox that takes some time to reach its conclusion, but always finds the malware.  Finally, if we set &lt;span class="math"&gt;\(f\)&lt;/span&gt; and/or &lt;span class="math"&gt;\(g\)&lt;/span&gt; to zero, this would represent an incompetent antivirus/sandbox that never detects anything if it gets past the initial defenses.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Incompetent antivirus/sandbox." src="http://lqdc.github.io/images/rabbits-foxes/f0g0.png" title="Incompetent antivirus/sandbox." /&gt;&lt;/p&gt;
+&lt;p&gt;Since &lt;span class="math"&gt;\(o\)&lt;/span&gt; and &lt;span class="math"&gt;\(m\)&lt;/span&gt; are rates of malware C&amp;amp;C servers being blocked,  setting them to zero results in unabated malware growth.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="No detection of C&amp;amp;C Servers hosting malware." src="http://lqdc.github.io/images/rabbits-foxes/o0m0.png" title="No detection of C&amp;amp;C Servers hosting malware." /&gt;
+At the opposite end of the spectrum, setting them to &lt;span class="math"&gt;\(1\)&lt;/span&gt; might represent very active Domain/IP blocking where C&amp;amp;C servers disappear within a day after being active.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="C&amp;amp;C servers detected within a day of being active." src="http://lqdc.github.io/images/rabbits-foxes/o1m1.png" title="C&amp;amp;C servers detected within a day of being active." /&gt;&lt;/p&gt;
+&lt;h3&gt;Without 0-Days&lt;/h3&gt;
+&lt;p&gt;If we set &lt;span class="math"&gt;\(\epsilon\)&lt;/span&gt; and &lt;span class="math"&gt;\(n\)&lt;/span&gt; to zero, we are ignoring the effect of 0-Day malware and associated C&amp;amp;C servers. Thus we are left with
+&lt;/p&gt;
+&lt;div class="math"&gt;$$
+\begin{align}
+\frac{dV}{dt}&amp;amp;= bQ -c V^k(1-e^{-a W})\\
+\frac{dI}{dt}&amp;amp;= cV^k(1-e^{-aW}) - fI\\
+\frac{dQ}{dt}&amp;amp;= fI - bQ\\
+\frac{dW}{dt}&amp;amp;= l (1-e^{-p W}) V^k - m W\\
+\end{align}
+$$&lt;/div&gt;
+&lt;p&gt;
+Here, &lt;span class="math"&gt;\(c\)&lt;/span&gt; can be viewed as a coefficient that represents the fraction of malware that is &lt;strong&gt;not&lt;/strong&gt; detected every day. Therefore, &lt;span class="math"&gt;\(0\)&lt;/span&gt; corresponds to&lt;/p&gt;
+&lt;p&gt;&lt;img alt="No 0-Days and all known malware blocked immediately." src="http://lqdc.github.io/images/rabbits-foxes/e0n0c0.png" title="No 0-Days and all known malware blocked immediately." /&gt;
+and &lt;span class="math"&gt;\(1\)&lt;/span&gt; corresponds to malware not getting detected initially.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="No 0-Days and malware not initially detected." src="http://lqdc.github.io/images/rabbits-foxes/e0n0c1.png" title="No 0-Days and malware not initially detected." /&gt;
+Setting &lt;span class="math"&gt;\(c\)&lt;/span&gt; to &lt;span class="math"&gt;\(1\)&lt;/span&gt;, and &lt;span class="math"&gt;\(f\)&lt;/span&gt; to &lt;span class="math"&gt;\(1\)&lt;/span&gt; and leaving the rest of the coefficients at default values, we can see that some computers are still infected.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="No zero days and malware not immediately detected, but always detected within a day." src="http://lqdc.github.io/images/rabbits-foxes/e0n0c1f1.png" title="No zero days and malware not immediately detected, but always detected within a day." /&gt;&lt;/p&gt;
+&lt;p&gt;What this implies is that the malware gets on some computers and is wiped within a day.  We are still left with a constant ≈&lt;span class="math"&gt;\(10\%\)&lt;/span&gt; portion of computers being infected.  However, if &lt;span class="math"&gt;\(90\%\)&lt;/span&gt; of the malware that gets on is initially detected (&lt;span class="math"&gt;\(c=0.1\)&lt;/span&gt;), only &lt;span class="math"&gt;\(3\%\)&lt;/span&gt; of the computers are infected.  Therefore, we can gather than initial detection plays a major role in reducing the number of infections.&lt;/p&gt;
+&lt;p&gt;Keeping &lt;span class="math"&gt;\(f=1\)&lt;/span&gt; i.e. the detection after &lt;span class="math"&gt;\(1\)&lt;/span&gt; day at &lt;span class="math"&gt;\(100\%\)&lt;/span&gt;, we can also answer whether it matters if an antivirus detects &lt;span class="math"&gt;\(90\%\)&lt;/span&gt; or &lt;span class="math"&gt;\(99\%\)&lt;/span&gt; of  malware immediately.  At &lt;span class="math"&gt;\(90\%\)&lt;/span&gt; detection, &lt;span class="math"&gt;\(2\%\)&lt;/span&gt; of computers are perpetually infected&lt;/p&gt;
+&lt;p&gt;&lt;img alt="90% immediate detection and full detection after 1 day." src="http://lqdc.github.io/images/rabbits-foxes/e0n0c01f1.png" title="90% immediate detection and full detection after 1 day." /&gt;
+while at &lt;span class="math"&gt;\(99\%\)&lt;/span&gt;, none are.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="99% immediate detection and full detection after 1 day" src="http://lqdc.github.io/images/rabbits-foxes/e0n0c001f1.png" title="99% immediate detection and full detection after 1 day" /&gt;
+So in a world where all malware is known and if an antivirus can tell after a day if a computer is infected, it is indeed better to use an antivirus that detects &lt;span class="math"&gt;\(99\%\)&lt;/span&gt; than &lt;span class="math"&gt;\(90\%\)&lt;/span&gt; of the malware immediately.&lt;/p&gt;
+&lt;h3&gt;Adding 0-Days&lt;/h3&gt;
+&lt;p&gt;After setting &lt;span class="math"&gt;\(\epsilon\)&lt;/span&gt; and &lt;span class="math"&gt;\(n\)&lt;/span&gt; back to their original values, we can explore what happens to the system when we have 0-Day malware and C&amp;amp;C servers and how 0-Day detection affects the number of infected computers.&lt;/p&gt;
+&lt;p&gt;First, we can look at the effects of &lt;span class="math"&gt;\(o\)&lt;/span&gt;, the coefficient of detection of C&amp;amp;C servers.  Increasing it surprisingly results in an &lt;em&gt;increase&lt;/em&gt; in the number of active known C&amp;amp;C servers, but decreases in infected and 0-Day infected computers. This makes sense, because there are more vulnerable computers, so malware authors may be more likely to spread existing malware.&lt;/p&gt;
+&lt;p&gt;A similar effect can be observed if we increase the detection rate of 0-Day malware (&lt;span class="math"&gt;\(g\)&lt;/span&gt;) or lower the fraction of working 0-Days (&lt;span class="math"&gt;\(\epsilon\)&lt;/span&gt;).&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Full detection of 0-Days after one day, and 80% detection immediately" src="http://lqdc.github.io/images/rabbits-foxes/g1e02.png" title="Full detection of 0-Days after one day, and 80% detection immediately" /&gt;
+The number of C&amp;amp;Cs that control 0-Day and known malware &lt;em&gt;increases&lt;/em&gt;, but the number of computers infected with either decreases.&lt;/p&gt;
+&lt;h3&gt;Lessons learned&lt;/h3&gt;
+&lt;p&gt;Although when creating the model we made a number of assumptions that may not always be true, these results can still be useful, especially if the model is fit to real data.&lt;/p&gt;
+&lt;p&gt;Small improvements in detection rate of known and 0-Day malware can make a big difference in the number of users subject to infection. For example, a &lt;span class="math"&gt;\(9\%\)&lt;/span&gt; increase in the immediate detection can result in almost complete abolition of infected computer population, substantially decreasing the need for forensic analysis and potentially reducing required IT budget. Overall, quicker signature generation (increasing the &lt;span class="math"&gt;\(f\)&lt;/span&gt; coefficient) and utilizing sandboxing techniques (increasing &lt;span class="math"&gt;\(g\)&lt;/span&gt; and decreasing &lt;span class="math"&gt;\(\epsilon\)&lt;/span&gt;) to detect 0-Days can have a profound impact in reducing the number of infected computers, thereby protecting users' data and preventing proliferation of botnets.&lt;/p&gt;
+&lt;p&gt;Full version of the Python model implementation &lt;a href="https://gist.githubusercontent.com/lqdc/b171c280fbf543c7831c/raw/8d70ca6aee163f1b95736019ddf78147a79cb9f3/model.py"&gt;can be found on Github&lt;/a&gt;.&lt;/p&gt;
+&lt;script type="text/javascript"&gt;if (!document.getElementById('mathjaxscript_pelican_#%@#$@#')) {
+    var align = "center",
+        indent = "0em",
+        linebreak = "false";
+
+    if (false) {
+        align = (screen.width &lt; 768) ? "left" : align;
+        indent = (screen.width &lt; 768) ? "0em" : indent;
+        linebreak = (screen.width &lt; 768) ? 'true' : linebreak;
+    }
+    
+    var mathjaxscript = document.createElement('script');
+    mathjaxscript.id = 'mathjaxscript_pelican_#%@#$@#';
+    mathjaxscript.type = 'text/javascript';
+    mathjaxscript.src = '//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML';
+    mathjaxscript[(window.opera ? "innerHTML" : "text")] =
+        "MathJax.Hub.Config({" +
+        "    config: ['MMLorHTML.js']," +
+        "    TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } }," +
+        "    jax: ['input/TeX','input/MathML','output/HTML-CSS']," +
+        "    extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']," +
+        "    displayAlign: '"+ align +"'," +
+        "    displayIndent: '"+ indent +"'," +
+        "    showMathMenu: true," +
+        "    tex2jax: { " +
+        "        inlineMath: [ ['\\\\(','\\\\)'] ], " +
+        "        displayMath: [ ['$$','$$'] ]," +
+        "        processEscapes: true," +
+        "        preview: 'TeX'," +
+        "    }, " +
+        "    'HTML-CSS': { " +
+        "        styles: { '.MathJax_Display, .MathJax .mo, .MathJax .mi, .MathJax .mn': {color: 'inherit ! important'} }," +
+        "        linebreaks: { automatic: "+ linebreak +", width: '90% container' }," +
+        "    }, " +
+        "}); ";
+    (document.body || document.getElementsByTagName('head')[0]).appendChild(mathjaxscript);
+}
+&lt;/script&gt;</summary><category term="modeling"></category><category term="malware"></category></entry><entry><title>Using Machine Learning to Name Malware</title><link href="http://lqdc.github.io/using-machine-learning-to-name-malware.html" rel="alternate"></link><updated>2015-03-08T03:03:00-07:00</updated><author><name>Roman Sinayev</name></author><id>tag:lqdc.github.io,2015-03-08:using-machine-learning-to-name-malware.html</id><summary type="html">&lt;p&gt;Currently, there is no agreed-upon malware naming convention among AV companies. Although this is not for the lack of trying as there are multiple "standards", ranging from &lt;a href="http://www.caro.org/naming/scheme.html"&gt;Caro&lt;/a&gt; to &lt;a href="http://www.microsoft.com/security/portal/mmpc/shared/malwarenaming.aspx"&gt;Microsoft&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="XKCD Standards" src="http://imgs.xkcd.com/comics/standards.png" /&gt;&lt;/p&gt;
+&lt;p&gt;When you find some malware in the wild, sometimes you want to find the procedure to remove that malware or at least,
+given it is some known malware, figure out what properties it has.&lt;/p&gt;
+&lt;p&gt;Let's do an example:
+Here is a &lt;a href="https://www.virustotal.com/en/file/33d781c7ca3745870451d8a3d2ade10689005dc9f6070cc78e5ad594bdb54936/analysis/"&gt;random malware&lt;/a&gt; found on Virustotal.
+Different AVs give it different names and a person unfamiliar with typical nomenclature may not know what any of them mean.  Also, most AVs don't agree on a naming
+convention, which makes interpreting the results difficult.  Moreover, we are not sure which results are correct and what they correspond to.&lt;/p&gt;
+&lt;p&gt;Running the sample through &lt;a href="https://github.com/guelfoweb/peframe"&gt;peframe&lt;/a&gt; we get a little more information:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;Short information
+------------------------------------------------------------
+File Name          33d781c7ca3745870451d8a3d2ade10689005dc9f6070cc78e5ad594bdb54936
+File Size          5632 byte
+Compile Time       2007-12-25 08:15:18
+DLL                No
+Sections           1
+Hash MD5           61c9ddb015db820cbdb8a2f39548b7a1
+Hash SAH1          3a5a79982e72fe2210a0722b0cea3d35520c2441
+Imphash            87bed5a7cba00c7e1f4015f1bdae2183
+Packer             Yes
+Anti Debug         No
+Anti VM            No
+Directory          Import
+
+Packer matched [1]
+------------------------------------------------------------
+Packer             kkrunchy 0.23 alpha 2 -&amp;gt; Ryd
+
+Suspicious API discovered [2]
+------------------------------------------------------------
+Function           GetProcAddress
+Function           LoadLibraryA
+
+File name discovered [1]
+------------------------------------------------------------
+Library            KERNEL32.DLL
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;So "krunchy" is a packer that obfuscates the code.&lt;/p&gt;
+&lt;p&gt;And after running it through the &lt;a href="http://www.cuckoosandbox.org/"&gt;Cuckoo Sandbox&lt;/a&gt; we see that this malware seems to modify the hosts file:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Malware hosts file" src="http://lqdc.github.io/images/malware_qhosts.jpg" /&gt;&lt;/p&gt;
+&lt;p&gt;So both Qhost and Krunchy are relatively correct names for the "family" of the malware, although Qhost is probably better.&lt;/p&gt;
+&lt;p&gt;We are not going to try to come up with a new standard, but instead settle on a decent name for the malware.  One way to do that is to use the names given by the AV vendors.&lt;/p&gt;
+&lt;h2&gt;Using Tf-idf&lt;/h2&gt;
+&lt;p&gt;The various naming conventions can include a lot of information such as unique id and the platform it runs on or the language it uses.  This is not particularly useful because it reaveals little information about what the malware does and how to get rid of it. Additionally, the platform/language can be inferred using filemagic, while a unique identifier might as well be a fuzzy hash of the file.&lt;/p&gt;
+&lt;p&gt;So how do we extract the family name?
+We could use a simple statistical strategy called Term Frequency x Inverse Document Frequency or &lt;a href="http://en.wikipedia.org/wiki/Tf%E2%80%93idf"&gt;tf-idf&lt;/a&gt;. It works by counting the number of times each word occurs in a document and multiplying it by the log of number of documents over number of documents that have that word. That is,&lt;/p&gt;
+&lt;div class="math"&gt;$$
+\begin{align}
+\mathrm{tf}_t  &amp;amp;= \sum_{t \in d}{1}\\
+\mathrm{idf}_t &amp;amp;= \log \frac{N}{\lvert \{ d \in D : t \in d \} \rvert}
+\end{align}
+$$&lt;/div&gt;
+&lt;p&gt;
+Here, &lt;span class="math"&gt;\(t\)&lt;/span&gt; is the term, &lt;span class="math"&gt;\(d\)&lt;/span&gt; is one document, &lt;span class="math"&gt;\(D\)&lt;/span&gt; is all documents, &lt;span class="math"&gt;\(N\)&lt;/span&gt; is the number of documents.&lt;/p&gt;
+&lt;p&gt;First we scan a bunch of malware on VT, make a file called "50kresults.json" with 50k antivirus results in the following format:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="p"&gt;[{&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;AV1&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Win32.Malware.name&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;AV2&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Trojan.horse&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;},&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;AV1&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Win32.BadVirus&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;AV2&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;JS.Iframe&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;}]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;To figure out the family based on tf-idf we can do the following:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;json&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;re&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;sklearn.feature_extraction.text&lt;/span&gt; &lt;span class="k"&gt;import&lt;/span&gt; &lt;span class="n"&gt;TfidfVectorizer&lt;/span&gt;
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;get_list_of_token_lists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;list_of_dicts&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="sd"&gt;&amp;quot;&amp;quot;&amp;quot;Convert [{&amp;quot;AV&amp;quot;: &amp;quot;Some.Malware&amp;quot;}, {&amp;quot;AV&amp;quot;:&amp;quot;Another.Malware&amp;quot;}] =&amp;gt; [[&amp;quot;Some&amp;quot;, &amp;quot;Malware&amp;quot;], [&amp;quot;Another&amp;quot;, &amp;quot;Malware&amp;quot;]]&amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+    &lt;span class="n"&gt;big_list&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[]&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;_dict&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;list_of_dicts&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="n"&gt;inner_list&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[]&lt;/span&gt;
+        &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;v&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;_dict&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;values&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;v&lt;/span&gt; &lt;span class="ow"&gt;is&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="k"&gt;None&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+                &lt;span class="n"&gt;inner_list&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;extend&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;re&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;split&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;\W&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+        &lt;span class="n"&gt;big_list&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;inner_list&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;big_list&lt;/span&gt;
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;make_tfidf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;list_of_dicts&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="n"&gt;tfidf&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;TfidfVectorizer&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;analyzer&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;lambda&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;tfidf&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;fit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;get_list_of_token_lists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;list_of_dicts&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;tfidf&lt;/span&gt;
+
+&lt;span class="n"&gt;j&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;load&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;50kresults.json&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+
+&lt;span class="c"&gt;#  our result for the Qhost/Krunchy malware&lt;/span&gt;
+&lt;span class="n"&gt;d&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;TrendMicro&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;TROJ_QHOST.GO&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Comodo&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;TrojWare.Win32.Trojan.Inject.~INC&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Avast&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Win32:QHost-BMV&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;VIPRE&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Packed.Win32.Krunchy&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Fortinet&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;W32/Krunchy.A!tr&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Ikarus&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Packer.Krunchy.B&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;AhnLab-V3&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Win-Trojan/Krunchy.91147&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;F-Secure&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;DeepScan:Generic.Malware.Qw.CEE83C79&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;VBA32&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;suspected&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;DrWeb&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan.DownLoader.31981&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Jiangmin&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan/Qhost.adx&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Panda&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trj/CI.A&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;BitDefender&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;DeepScan:Generic.Malware.Qw.CEE83C79&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;GData&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;DeepScan:Generic.Malware.Qw.CEE83C79&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Kaspersky&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan.Win32.Qhost.aed&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;nProtect&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan/W32.Qhost.5632&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Norman&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;W32/Packed_Krunchy.A&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;McAfee&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Generic&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Symantec&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan.SpamThru&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;K7AntiVirus&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Sophos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Mal/Generic-L&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;TrendMicro-HouseCall&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;TROJ_QHOST.GO&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Antiy-AVL&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan/Win32.Qhost.gen&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;PCTools&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan.SpamThru&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;AVG&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Obfustat.ADPJ&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;ViRobot&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Spyware.Delf.Do.5632.A&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Avast5&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Win32:QHost-BMV&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Microsoft&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan:Win32/Meredrop&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;CAT-QuickHeal&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan.Qhost.aed&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;NOD32&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;probably&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;McAfee-GW-Edition&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Heuristic.LooksLike.Win32.Suspicious.F!83&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;VirusBuster&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan.Qhost.GQ&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Emsisoft&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Packer.Krunchy.B!IK&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;AntiVir&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;TR/Crypt.XPACK.Gen&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Commtouch&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;W32/Trojan2.THU&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;F-Prot&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;W32/Trojan2.THU&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;tfidf&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;make_tfidf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;to_guess&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt;
+
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;We have to guess the family name in the following result:&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to_guess&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;l_of_l&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;get_list_of_token_lists&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="n"&gt;to_guess&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;span class="n"&gt;m&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;tfidf&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;transform&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l_of_l&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;els_to_pos&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;tfidf&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vocabulary_&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;e&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;l_of_l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]}&lt;/span&gt;
+&lt;span class="n"&gt;els_to_scores&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;k&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;[:,&lt;/span&gt; &lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;toarray&lt;/span&gt;&lt;span class="p"&gt;()[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;k&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;v&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;els_to_pos&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;items&lt;/span&gt;&lt;span class="p"&gt;()}&lt;/span&gt;
+
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;Top 3 results for families:&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;sorted&lt;/span&gt;&lt;span class="p"&gt;([(&lt;/span&gt;&lt;span class="n"&gt;token&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;score&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;token&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;score&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;els_to_scores&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;items&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;token&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;lambda&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;reverse&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;True&lt;/span&gt;&lt;span class="p"&gt;)[:&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;And we get the following output:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;Top 3 results for families:
+[(&amp;#39;Krunchy&amp;#39;, 0.45202206291544067), (&amp;#39;Qhost&amp;#39;, 0.38232102610232943), (&amp;#39;CEE83C79&amp;#39;, 0.28923118570941675)]
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;So this worked pretty well.&lt;/p&gt;
+&lt;p&gt;However, this strategy does not always work. For example, for the following set of results:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;Comodo&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;UnclassifiedMalware&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Avast&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Win32:Dropper-gen&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;VIPRE&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan.Win32.Generic!BT&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Fortinet&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;W32/Small.JGG!tr.dldr&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Agnitum&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan.PWS.Nilage!7qzxMXSt8xA&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;AhnLab-V3&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan/Win32.Downloader&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;F-Secure&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan.Generic.4486012&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;DrWeb&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan.DownLoader1.14982&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Jiangmin&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan/PSW.Nilage.eeb&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Panda&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trj/CI.A&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;BitDefender&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan.Generic.4486012&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;GData&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan.Generic.4486012&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Kaspersky&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan-GameThief.Win32.Nilage.hjm&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;nProtect&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan/W32.Small.23040.AU&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;VBA32&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;TrojanPSW.Nilage&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;McAfee&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;PWS-Lineage!l&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Symantec&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Spyware.Keylogger&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;K7AntiVirus&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Riskware&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Antiy-AVL&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan/win32.agent.gen&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;PCTools&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Spyware.Keylogger!rem&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;AVG&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;PSW.OnlineGames3.APII&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;TheHacker&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan/Nilage.hjm&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Ikarus&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan-Downloader.Win32.Banload&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;ESET-NOD32&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;a&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;McAfee-GW-Edition&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;PWS-Lineage!l&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;NANO-Antivirus&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan.Win32.Nilage.bcufrb&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Emsisoft&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan.Generic.4486012&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;AntiVir&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;TR/Crypt.CFI.Gen&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;MicroWorld-eScan&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan.Generic.4486012&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Commtouch&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;W32/Risk.ZZEX-7195&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;Norman&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Downloader&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;K7GW&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Password-Stealer&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;F-Prot&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;W32/MalwareF.IIVH&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The process yields:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;Top 3 results for families:
+[(&amp;#39;4486012&amp;#39;, 0.53745997540319712), (&amp;#39;Nilage&amp;#39;, 0.53215845680514295), (&amp;#39;Trojan&amp;#39;, 0.18195861475064623)]
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Where Trojan and the 4486012 number result are not what we are interested in.&lt;/p&gt;
+&lt;h2&gt;Using CRF&lt;/h2&gt;
+&lt;p&gt;So how do we figure out which
+If we re-frame the problem of figuring out a good name into the problem of labeling  parts of virus names and then combining the labels from different antiviruses, we can see it as a &lt;a href="http://en.wikipedia.org/wiki/Text_segmentation"&gt;text segmentation&lt;/a&gt; problem.&lt;/p&gt;
+&lt;p&gt;In our case, text segmentation can be used to infer what each part of a virus name means. That is,&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="s"&gt;&amp;quot;Win32.Agent.1234&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Can be split into&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Win32&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Agent&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;1234&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;and labeled as&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Platform&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Family&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;id&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;After that, based on all the platform names that we get from AVs we can figure out what the consensus is. We want to use CRFs instead of something like Naive Bayes, because the order of tokens within each AV’s name for a virus is very important and because the tokens are not independent (i.e. An Iframe family malware is probably written in Javascript).&lt;/p&gt;
+&lt;p&gt;There are a number of algorithms that can be used to infer what each part of the virus name means including those based on Hidden Markov Models (HMM) and Conditional Random Fields (CRF).
+There is already an excellent explanation of how HMMs work and how to figure out what the states are on the &lt;a href="http://en.wikipedia.org/wiki/Viterbi_algorithm#Example"&gt;Viterbi Algorithm Wiki&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;CRFs can be viewed as a generalization of HMMs that makes the constant transition probabilities such as from Healthy to Fever on the wiki page into arbitrary
+functions that vary across the positions in the sequence of hidden states (Health or Fever), depending on the input sequence (normal, cold or dizzy).&lt;/p&gt;
+&lt;p&gt;Here we will use the excellent &lt;a href="http://www.chokkan.org/software/crfsuite"&gt;CRFSuite&lt;/a&gt; library to label the states.
+We’ll create some training data, convert it to features, train a model and run it on some results we haven’t seen before.&lt;/p&gt;
+&lt;p&gt;First, let’s create some training data to label parts of virus names with their corresponding tags. We would want to convert antivirus results such as&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="p"&gt;[{&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;AntiVir&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;TR/Crypt.XPACK.Gen2&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;},&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;AntiVir&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;DR/Delphi.Gen&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;}]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;into the following:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;TR 0 AntiVir _type
+/ / AntiVir delim
+Crypt 1 AntiVir family
+. . AntiVir delim
+XPACK 2 AntiVir group
+. . AntiVir delim
+Gen2 3 AntiVir ident
+
+DR 0 AntiVir _type
+/ / AntiVir delim
+Delphi 1 AntiVir family
+. . AntiVir delim
+Gen 2 AntiVir ident
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;With the last column being the labels that will later be guessed. To create the above format, we can use the following:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;itertools&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;re&lt;/span&gt;
+&lt;span class="n"&gt;REGEX_NONWORD&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;re&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;compile&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;\W&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;REGEX_NONWORD_SAVED&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;re&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;compile&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;(\W)&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;preprocess_av_result&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;av_result&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;av&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="sd"&gt;&amp;quot;&amp;quot;&amp;quot;Split an av result into a list of maps for word, pos, av and label&lt;/span&gt;
+
+&lt;span class="sd"&gt;    EG. take something like &amp;#39;win32.malware.group&amp;#39; and convert to&lt;/span&gt;
+&lt;span class="sd"&gt;        [{&amp;#39;av&amp;#39;: &amp;#39;someav&amp;#39;, &amp;#39;w&amp;#39;: &amp;#39;win32&amp;#39;, &amp;#39;pos&amp;#39;: &amp;#39;0&amp;#39;, &amp;#39;label&amp;#39;: &amp;#39;skip&amp;#39;},&lt;/span&gt;
+&lt;span class="sd"&gt;         {&amp;#39;av&amp;#39;: &amp;#39;someav&amp;#39;, &amp;#39;w&amp;#39;: &amp;#39;.&amp;#39;, &amp;#39;pos&amp;#39;: &amp;#39;.&amp;#39;, &amp;#39;label&amp;#39;: &amp;#39;delim&amp;#39;},&lt;/span&gt;
+&lt;span class="sd"&gt;         {&amp;#39;av&amp;#39;: &amp;#39;someav&amp;#39;, &amp;#39;w&amp;#39;: &amp;#39;malware&amp;#39;, &amp;#39;pos&amp;#39;: &amp;#39;1&amp;#39;, &amp;#39;label&amp;#39;: &amp;#39;skip&amp;#39;},&lt;/span&gt;
+&lt;span class="sd"&gt;         {&amp;#39;av&amp;#39;: &amp;#39;someav&amp;#39;, &amp;#39;w&amp;#39;: &amp;#39;.&amp;#39;, &amp;#39;pos&amp;#39;: &amp;#39;.&amp;#39;, &amp;#39;label&amp;#39;: &amp;#39;delim&amp;#39;},&lt;/span&gt;
+&lt;span class="sd"&gt;         {&amp;#39;av&amp;#39;: &amp;#39;someav&amp;#39;, &amp;#39;w&amp;#39;: &amp;#39;group&amp;#39;, &amp;#39;pos&amp;#39;: &amp;#39;2&amp;#39;, &amp;#39;label&amp;#39;: &amp;#39;skip&amp;#39;}]&lt;/span&gt;
+
+&lt;span class="sd"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+    &lt;span class="n"&gt;split_delim&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;el&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;el&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39; &amp;#39;&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;_&amp;#39;&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;el&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt;
+                   &lt;span class="n"&gt;REGEX_NONWORD_SAVED&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;split&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;av_result&lt;/span&gt;&lt;span class="p"&gt;)]&lt;/span&gt;
+    &lt;span class="n"&gt;split_no_delim&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;REGEX_NONWORD&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;split&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;av_result&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;delims&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;set&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;split_delim&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="nb"&gt;set&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;split_no_delim&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="n"&gt;counter&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;
+    &lt;span class="n"&gt;tags&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[]&lt;/span&gt;
+    &lt;span class="n"&gt;labels&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[]&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;el&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;split_delim&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;el&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;delims&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+            &lt;span class="n"&gt;labels&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;delim&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+            &lt;span class="n"&gt;tags&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;el&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="k"&gt;else&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+            &lt;span class="n"&gt;labels&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;skip&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+            &lt;span class="n"&gt;tags&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;counter&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+            &lt;span class="n"&gt;counter&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="p"&gt;[{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;w&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;pos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;av&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;k&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;label&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;k&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt;
+            &lt;span class="nb"&gt;zip&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;split_delim&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;tags&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;itertools&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;repeat&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;av&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;labels&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+
+
+&lt;span class="n"&gt;j&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;load&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;50kresults.json&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;))[:&lt;/span&gt;&lt;span class="mi"&gt;1000&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;  &lt;span class="c"&gt;# contains the results&lt;/span&gt;
+&lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="nb"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;all_train.txt&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;w&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;  &lt;span class="c"&gt;# name of the training file&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;av&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;res&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;items&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;res&lt;/span&gt; &lt;span class="ow"&gt;is&lt;/span&gt; &lt;span class="k"&gt;None&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+                &lt;span class="k"&gt;continue&lt;/span&gt;
+            &lt;span class="n"&gt;features&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;preprocess_av_result&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;res&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;av&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+            &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;fd&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;features&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+                &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;write&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;&lt;/span&gt;&lt;span class="se"&gt;\t&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;join&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="n"&gt;fd&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;w&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;fd&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;pos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;fd&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;av&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;fd&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;label&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]])&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+            &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;write&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;After creating and manually labeling the tokens (we label the last column in “all_train.txt” according to what we think the token actually corresponds to), we want to create a feature file that crfsuite understands. To convert the result to features, we can use the slightly modified script built into crfsuite called ‘chunking.py’ that converts labeled CSV file to feature file. All we have to do to take advantage of the fact that CRF can use the fact that each antivirus uses a slightly different naming convention is to modify the template (included below).&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;templates&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;w&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;),&lt;/span&gt;
+    &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;w&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;),&lt;/span&gt;
+    &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;w&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;),&lt;/span&gt;
+    &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;w&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;),&lt;/span&gt;
+    &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;w&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;),&lt;/span&gt;
+    &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;w&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;w&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)),&lt;/span&gt;
+    &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;w&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;w&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)),&lt;/span&gt;
+    &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;pos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;),&lt;/span&gt;
+    &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;pos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;),&lt;/span&gt;
+    &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;pos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;),&lt;/span&gt;
+    &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;pos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;),&lt;/span&gt;
+    &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;pos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;),&lt;/span&gt;
+    &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;pos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;pos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)),&lt;/span&gt;
+    &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;pos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;pos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)),&lt;/span&gt;
+    &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;pos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;pos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)),&lt;/span&gt;
+    &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;pos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;pos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)),&lt;/span&gt;
+    &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;pos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;pos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;pos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)),&lt;/span&gt;
+    &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;pos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;pos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;pos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)),&lt;/span&gt;
+    &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;pos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;pos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;pos&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)),&lt;/span&gt;
+    &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;av&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="p"&gt;),&lt;/span&gt;
+    &lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We save it to chunking_av.py and run it with the following command:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;cat all_train.txt | ./chunking_av.py &amp;gt; all_train.crfsuit.txt
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;After that, we have to train the model using the features file:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;crfsuite learn -m all_train.model all_train.crfsuit.txt
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;After that, we can check how the model performs with some testing data:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;cat all_test.txt | ./chunking_av.py &amp;gt; all_test.crfsuite.txt
+crfsuite tag -m all_train.model -t all_test.crfsuite.txt
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Annnnd….&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;Performance by label (#match, #model, #ref) (precision, recall, F1):
+    _type: (80, 80, 80) (1.0000, 1.0000, 1.0000)
+    delim: (558, 558, 558) (1.0000, 1.0000, 1.0000)
+    family: (159, 162, 159) (0.9815, 1.0000, 0.9907)
+    group: (19, 19, 19) (1.0000, 1.0000, 1.0000)
+    ident: (152, 152, 156) (1.0000, 0.9744, 0.9870)
+    skip: (95, 97, 95) (0.9794, 1.0000, 0.9896)
+    platform: (109, 109, 112) (1.0000, 0.9732, 0.9864)
+    language: (12, 15, 13) (0.8000, 0.9231, 0.8571)
+    method: (7, 7, 7) (1.0000, 1.0000, 1.0000)
+    compiler: (0, 0, 0) (******, ******, ******)
+    _test: (0, 0, 0) (******, ******, ******)
+    malic: (27, 27, 27) (1.0000, 1.0000, 1.0000)
+
+Macro-average precision, recall, F1: (0.697204, 0.705046, 0.700773)
+Item accuracy: 1218 / 1226 (0.9935)
+Instance accuracy: 152 / 160 (0.9500)
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We are primarily interested in the family accuracy which is at ~98%. Good enough.&lt;/p&gt;
+&lt;p&gt;Now we can use the “all_train.model” file to tag tokens in new malware names.
+First, create a function for extracting features from labeled text:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;extract_features&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;X&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="n"&gt;all_features&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[]&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;_&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;enumerate&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;X&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;el_features&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;X&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;label&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]]&lt;/span&gt;
+        &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;template&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;templates&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+            &lt;span class="n"&gt;features_i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[]&lt;/span&gt;
+            &lt;span class="n"&gt;name&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;|&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;join&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;%s[%d]&amp;#39;&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;o&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;o&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;template&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+            &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;field&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;offset&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;template&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+                &lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;offset&lt;/span&gt;
+                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt; &lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;=&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;X&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+                    &lt;span class="n"&gt;features_i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[]&lt;/span&gt;
+                    &lt;span class="k"&gt;break&lt;/span&gt;
+                &lt;span class="n"&gt;features_i&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;X&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;p&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="n"&gt;field&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;features_i&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+                &lt;span class="n"&gt;el_features&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;%s=%s&amp;#39;&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;|&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;join&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;features_i&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
+        &lt;span class="n"&gt;all_features&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;el_features&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;all_features&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;__BOS__&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;all_features&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;__EOS__&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;all_features&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Then use the Tagger class from python-crfsuite library to label the malware:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;pycrfsuite&lt;/span&gt; &lt;span class="k"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Tagger&lt;/span&gt;
+&lt;span class="n"&gt;tagger&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Tagger&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;tagger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;all_train.model&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;  &lt;span class="c"&gt;# our model file we created in previous step.&lt;/span&gt;
+&lt;span class="n"&gt;k&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;v&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;F-Prot&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;W32/LoadMoney.K.gen!Eldorado&amp;#39;&lt;/span&gt;  &lt;span class="c"&gt;# av result from previous section&lt;/span&gt;
+&lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;tagger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;tag&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;extract_features&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;preprocess_av_result&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;k&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Antivirus:&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;k&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Antivirus result:&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Tokenized result:&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;res&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;w&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;res&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;preprocess_av_result&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;k&lt;/span&gt;&lt;span class="p"&gt;)])&lt;/span&gt;
+&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Labeled result&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;result&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We get the following output:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;Antivirus: F-Prot
+Antivirus result: W32/LoadMoney.K.gen!Eldorado
+Tokenized result: [&amp;#39;W32&amp;#39;, &amp;#39;/&amp;#39;, &amp;#39;LoadMoney&amp;#39;, &amp;#39;.&amp;#39;, &amp;#39;K&amp;#39;, &amp;#39;.&amp;#39;, &amp;#39;gen&amp;#39;, &amp;#39;!&amp;#39;, &amp;#39;Eldorado&amp;#39;]
+Labeled result [&amp;#39;platform&amp;#39;, &amp;#39;delim&amp;#39;, &amp;#39;family&amp;#39;, &amp;#39;delim&amp;#39;, &amp;#39;ident&amp;#39;, &amp;#39;delim&amp;#39;, &amp;#39;skip&amp;#39;, &amp;#39;delim&amp;#39;, &amp;#39;ident&amp;#39;]
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;It worked! We now know what each token corresponds to. We can further improve results by modifying the template, including additional features, do further post-processing such as picking one name among synonymous names, grouping similarly spelled labels, etc.&lt;/p&gt;
+&lt;p&gt;But this seems to be good enough for now.&lt;/p&gt;
+&lt;p&gt;Once we have all the post-processing in place, we can even guess the labels of the malware we could't get with Tf-idf:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;In&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;name_generator&lt;/span&gt;
+&lt;span class="n"&gt;In&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt; &lt;span class="n"&gt;g&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;name_generator&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Guesser&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;In&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;Comodo&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;UnclassifiedMalware&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;Avast&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Win32:Dropper-gen&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;VIPRE&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan.Win32.Generic!BT&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;Fortinet&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;W32/Small.JGG!tr.dldr&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;Agnitum&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan.PWS.Nilage!7qzxMXSt8xA&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;AhnLab-V3&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan/Win32.Downloader&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;F-Secure&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan.Generic.4486012&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;DrWeb&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan.DownLoader1.14982&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;Jiangmin&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan/PSW.Nilage.eeb&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;Panda&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trj/CI.A&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;BitDefender&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan.Generic.4486012&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;GData&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan.Generic.4486012&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;Kaspersky&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan-GameThief.Win32.Nilage.hjm&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;nProtect&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan/W32.Small.23040.AU&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;VBA32&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;TrojanPSW.Nilage&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;McAfee&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;PWS-Lineage!l&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;Symantec&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Spyware.Keylogger&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;K7AntiVirus&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Riskware&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;Antiy-AVL&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan/win32.agent.gen&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;PCTools&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Spyware.Keylogger!rem&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;AVG&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;PSW.OnlineGames3.APII&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;TheHacker&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan/Nilage.hjm&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;Ikarus&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan-Downloader.Win32.Banload&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;ESET-NOD32&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;a&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;McAfee-GW-Edition&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;PWS-Lineage!l&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;NANO-Antivirus&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan.Win32.Nilage.bcufrb&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;Emsisoft&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan.Generic.4486012&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;AntiVir&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;TR/Crypt.CFI.Gen&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;MicroWorld-eScan&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan.Generic.4486012&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;Commtouch&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;W32/Risk.ZZEX-7195&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;Norman&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Downloader&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;K7GW&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Password-Stealer&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+             &lt;span class="s"&gt;&amp;#39;F-Prot&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;W32/MalwareF.IIVH&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="n"&gt;In&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt; &lt;span class="n"&gt;g&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;guess_everything&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;Out&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;family&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Nilage&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;platform&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Win32&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;group&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;unknown&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;ident&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;hjm&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;language&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;unknown&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;compiler&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;unknown&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="s"&gt;&amp;#39;_type&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Trojan&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;All of the post-processing to settle on one common name has already been done and you can find the library that can guess the virus names at this &lt;a href="https://github.com/lqdc/virus-names"&gt;github repo&lt;/a&gt;.&lt;/p&gt;
+&lt;script type="text/javascript"&gt;if (!document.getElementById('mathjaxscript_pelican_#%@#$@#')) {
+    var align = "center",
+        indent = "0em",
+        linebreak = "false";
+
+    if (false) {
+        align = (screen.width &lt; 768) ? "left" : align;
+        indent = (screen.width &lt; 768) ? "0em" : indent;
+        linebreak = (screen.width &lt; 768) ? 'true' : linebreak;
+    }
+    
+    var mathjaxscript = document.createElement('script');
+    mathjaxscript.id = 'mathjaxscript_pelican_#%@#$@#';
+    mathjaxscript.type = 'text/javascript';
+    mathjaxscript.src = '//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML';
+    mathjaxscript[(window.opera ? "innerHTML" : "text")] =
+        "MathJax.Hub.Config({" +
+        "    config: ['MMLorHTML.js']," +
+        "    TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } }," +
+        "    jax: ['input/TeX','input/MathML','output/HTML-CSS']," +
+        "    extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']," +
+        "    displayAlign: '"+ align +"'," +
+        "    displayIndent: '"+ indent +"'," +
+        "    showMathMenu: true," +
+        "    tex2jax: { " +
+        "        inlineMath: [ ['\\\\(','\\\\)'] ], " +
+        "        displayMath: [ ['$$','$$'] ]," +
+        "        processEscapes: true," +
+        "        preview: 'TeX'," +
+        "    }, " +
+        "    'HTML-CSS': { " +
+        "        styles: { '.MathJax_Display, .MathJax .mo, .MathJax .mi, .MathJax .mn': {color: 'inherit ! important'} }," +
+        "        linebreaks: { automatic: "+ linebreak +", width: '90% container' }," +
+        "    }, " +
+        "}); ";
+    (document.body || document.getElementsByTagName('head')[0]).appendChild(mathjaxscript);
+}
+&lt;/script&gt;</summary><category term="HMM"></category><category term="CRF"></category><category term="malware"></category><category term="ML"></category></entry><entry><title>“Indistinguishability obfuscation” and malware detection</title><link href="http://lqdc.github.io/indistinguishability-obfuscation-and-malware-detection.html" rel="alternate"></link><updated>2014-10-03T17:46:00-07:00</updated><author><name>Roman Sinayev</name></author><id>tag:lqdc.github.io,2014-10-03:indistinguishability-obfuscation-and-malware-detection.html</id><summary type="html">&lt;p&gt;Recent &lt;a href="http://eprint.iacr.org/2013/451.pdf"&gt;breakthroughs&lt;/a&gt; in cryptography, widely &lt;a href="http://www.simonsfoundation.org/quanta/20140130-perfecting-the-art-of-sensible-nonsense/"&gt;reported&lt;/a&gt; on in the media showed that it is possible to reassemble any given program into a mathematical jigsaw puzzle so complicated that, although it functions identically to the original, divining its purpose without running it is effectively impossible. We’ll look at the security implications of these findings.&lt;/p&gt;
+&lt;p&gt;Do the results imply that any malware program can be obfuscated to be indistinguishable from benign programs?&lt;/p&gt;
+&lt;p&gt;No.&lt;/p&gt;
+&lt;p&gt;This is because there are restrictions on this obfuscation. Specifically, the authors only show the possibility of “indistinguishability obfuscation”, which really means that if one obfuscates two different programs which perform the same function, they would still function like the non-obfuscated versions, taking the same inputs from the outside environment and outputting the same outputs, but it would be impossible to tell them apart.&lt;/p&gt;
+&lt;p&gt;More specifically, they show that given two programs &lt;code&gt;A&lt;/code&gt; and &lt;code&gt;B&lt;/code&gt;, where &lt;code&gt;A'&lt;/code&gt; is obfuscated version of &lt;code&gt;A&lt;/code&gt; and &lt;code&gt;B'&lt;/code&gt; is an obfuscated verion of &lt;code&gt;B&lt;/code&gt;, where both take in &lt;code&gt;x&lt;/code&gt; as input and have &lt;code&gt;y&lt;/code&gt; as output, we would not be able to distinguish between
+&lt;code&gt;A'(x) =&amp;gt; y&lt;/code&gt; and &lt;code&gt;B'(x) =&amp;gt; y&lt;/code&gt;.
+Here we can’t tell whether &lt;code&gt;A’&lt;/code&gt; is an obfuscated version of &lt;code&gt;A&lt;/code&gt; or &lt;code&gt;B&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;This is useful because &lt;code&gt;A&lt;/code&gt; might be an implementation where the behavior of the program was completely transparent while &lt;code&gt;B&lt;/code&gt; might be an implementation written by highly skilled programmers who spent a thousand years making every effort to hide the inner workings of the program: after obfuscation, program &lt;code&gt;A’&lt;/code&gt; is at least as hard to analyze as program &lt;code&gt;B’&lt;/code&gt;. Moreover, &lt;code&gt;B&lt;/code&gt; represents any possible program that performs the same function as &lt;code&gt;A&lt;/code&gt;; actually writing &lt;code&gt;B&lt;/code&gt; is unnecessary.&lt;/p&gt;
+&lt;p&gt;If such an obfuscator is created for a commonly used programming language and if it is commonly used by benign software, it will make malware impossible to detect using static analysis, precisely because static analysis relies on analyzing implementation details. If someone were to obfuscate malware, it would still behave like malware, but it wouldn’t be possible to determine how the malware is implemented.&lt;/p&gt;
+&lt;p&gt;While static analysis would be fruitless, this does not imply that malware obfuscated in this way would be impossible to detect. A sandbox would still be able to detect this new program, because it can look at the program’s behavior when interacting with the outside environment, which would be malicious by definition.&lt;/p&gt;
+&lt;p&gt;So although the results are very interesting, they do not imply that any malware obfuscated in this way would be impossible to detect.&lt;/p&gt;</summary><category term="malware"></category></entry><entry><title>Making Finfisher Undetectable</title><link href="http://lqdc.github.io/making-finfisher-undetectable.html" rel="alternate"></link><updated>2014-10-02T17:46:00-07:00</updated><author><name>Roman Sinayev</name></author><id>tag:lqdc.github.io,2014-10-02:making-finfisher-undetectable.html</id><summary type="html">&lt;p&gt;Recently, &lt;a href="https://wikileaks.org/spyfiles4/"&gt;Wikileaks revealed FinFisher&lt;/a&gt;, a program used by governemnts to spy on journalists. Although it is claimed on the page that the malware is “previously unreleased”, we know that antivirus (AV) companies &lt;strong&gt;knew about it for almost 4 years&lt;/strong&gt;, because someone uploaded it to VirusTotal close to 4 years ago:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Finfisher Scan Date" src="http://lqdc.github.io/images/finfisher/ff_vt_ts.png" title="Finfisher Scan Date" /&gt;&lt;/p&gt;
+&lt;p&gt;Since it’s been known as malware for so long, most antiviruses detect it as malicious:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="vt of finfisher" src="http://lqdc.github.io/images/finfisher/finfisher_original.png" title="vt of finfisher" /&gt;&lt;/p&gt;
+&lt;p&gt;Evading antivirus signatures, like those used on VirusTotal, is trivial. We will try to modify/obfuscate FinFisher so that it is neither detected by antiviruses on VirusTotal nor by two standalone products including &lt;a href="http://us.norton.com/antivirus"&gt;Symantec Norton Antivirus 2014&lt;/a&gt; and &lt;a href="http://www.bitdefender.com/solutions/internet-security.html"&gt;BitDefender&lt;/a&gt;.
+We want to test against standalone products because they may have more advanced detection strategies not employed by VirusTotal.
+These two antiviruses both &lt;a href="http://www.pcmag.com/article2/0,2817,2460688,00.asp"&gt;1&lt;/a&gt; &lt;a href="http://www.pcmag.com/article2/0,2817,2424558,00.asp"&gt;2&lt;/a&gt;
+got awards on PCMagazine, so we are not cheating with easy targets.&lt;/p&gt;
+&lt;p&gt;Finally, we’ll go through some of the more advanced detection strategies that are less trivial for malware authors to bypass.&lt;/p&gt;
+&lt;h3&gt;Obfuscating Malware&lt;/h3&gt;
+&lt;p&gt;One strategy that antiviruses use to detect a malicious program is finding a small part of it that is integral to its function (i.e. a &lt;a href="http://www.techopedia.com/definition/4158/virus-signature"&gt;virus signature&lt;/a&gt;) that doesn’t appear in normal software. Then, they cross reference a database of such small patterns against the file contents, and if there is a match, the file is labeled as malware.&lt;/p&gt;
+&lt;p&gt;However, it is not always easy or even possible to come up with a good signature/heuristic, because the viruses can mutate or because the malware authors can decide to obfuscate that specific part of the malware.&lt;/p&gt;
+&lt;p&gt;Software packers can be used to make it difficult to come up with such a signature or heuristic, or to change an existing piece of malware in such a way that an antivirus signature no longer matches the malware.&lt;/p&gt;
+&lt;p&gt;According to Wikipedia,&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Packers are wrappers put around pieces of software to compress and/or encrypt their contents
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Packers are widely used by legitimate software to hide implementation details, while retaining the function of the software. This is necessary when the author of the software doesn’t want others to copy/distribute/improve upon the software without permission.&lt;/p&gt;
+&lt;p&gt;An example of such a legitimate use case is when a video game company releases a demo of a game. Instead of bothering to remove all the functionality from the game, the developers can just have one line statement within it that would check if the license is just a demo license and remove functionality if it is. If such a game company doesn’t bother with an obfuscator/packer, it would be very easy for an expert in reverse engineering to enable the full functionality.&lt;/p&gt;
+&lt;p&gt;A very naive form of obfuscation/packing is zip compression.
+Here’s how a file with 100 lines of the word Hello looks on hexedit to a computer:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Plain 100 lines of hello" src="http://lqdc.github.io/images/finfisher/hello.png" title="Plain 100 lines of hello" /&gt;&lt;/p&gt;
+&lt;p&gt;Here’s how the same file looks when zipped:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Hello Zipped" src="http://lqdc.github.io/images/finfisher/hello_zipped.png" /&gt;&lt;/p&gt;
+&lt;p&gt;It wouldn’t be obvious to a person unfamiliar with zip compression that the compressed text corresponds to the original 100 lines of “Hello”. Other packers don’t make this process easy at all, especially if the antivirus has not encountered the packer before.&lt;/p&gt;
+&lt;p&gt;Here’s a landscape of the currently available off-the-shelf packers (taken from &lt;a href="http://forensicmethods.com/executablepackers"&gt;http://forensicmethods.com/executablepackers&lt;/a&gt;)&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Current Packers" src="http://lqdc.github.io/images/finfisher/Packers.png" /&gt;&lt;/p&gt;
+&lt;h3&gt;Commercial Legal packers and FUD (Fully UnDetectable) packers.&lt;/h3&gt;
+&lt;p&gt;When a malware author wants to obfuscate malware, they would want to use the same strategies as someone using packers legitimately.&lt;/p&gt;
+&lt;p&gt;One solution for a malware author is to use a commercial FUD malware packer. These are new packers that haven’t yet been seen by antiviruses and that can be used to package any malware so that it wouldn’t be detected by antiviruses. One can purchase these packers either on the open internet e.g. &lt;a href="http://www.best-fud-crypters.com/"&gt;Best-Fud&lt;/a&gt;, the operation of which is shown &lt;a href="https://www.youtube.com/watch?v=cg5BP_2_ijc"&gt;here&lt;/a&gt;.
+&lt;strong&gt;Please don’t try to use this packer. I have not tested it. It may contain malware itself.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Another solution is to go to a hidden services market such as Silk Road 2 and purchase a new FUD malware packer. Since the packer isn’t known to the AV companies ahead of time, they wouldn’t be able to come up with a good signature for it.&lt;/p&gt;
+&lt;p&gt;A third solution is to simply buy a legitimate packer such as &lt;a href="http://www.oreans.com/themida.php"&gt;Themida&lt;/a&gt;. This way it’s not malware authors battling antivirus vendors, where antivirus vendors are free to label the FUD crypter itself as malware, but the whole software obfuscation industry vs antivirus vendors, where labeling anything packed by the packer as malware is not an option. In fact, even the latest malware deobfuscation techniques &lt;a href="http://www.covert.io/research-papers/security/Eureka%20-%20A%20framework%20for%20enabling%20static%20malware%20analysis.pdf"&gt;struggle&lt;/a&gt; with some of the commercial packers.&lt;/p&gt;
+&lt;h3&gt;Let’s get to it!&lt;/h3&gt;
+&lt;p&gt;We’ll try to obfuscate/pack FinFisher, so that no antivirus detects it. We will try to only use free/demo versions of obfuscators, including the windows built in IExpress bundler, demo version of Themida and demo version of VMProtect packer.&lt;/p&gt;
+&lt;p&gt;To begin, let’s see where we stand with detection of the original file. We already saw the Virustotal results, but let’s see what the standalone packers say.&lt;/p&gt;
+&lt;p&gt;Norton AV:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="symantec finfisher" src="http://lqdc.github.io/images/finfisher/symantec_raw.png" /&gt;&lt;/p&gt;
+&lt;p&gt;And by Bitdefender:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="bitdefender raw" src="http://lqdc.github.io/images/finfisher/bitdefender_raw.png" /&gt;&lt;/p&gt;
+&lt;p&gt;Yup, a known malicious 4 year old malware.&lt;/p&gt;
+&lt;p&gt;First, let’s try to use IExpress to package the original FinFisher file downloaded from WikiLeaks. Here’s how to do it:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="iexpress demo" src="http://lqdc.github.io/images/finfisher/ParallelWiltedAcouchi.gif" /&gt;&lt;/p&gt;
+&lt;p&gt;And after uploading the resulting file to VirusTotal, we get this result:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="finfisher iexpress" src="http://lqdc.github.io/images/finfisher/finfisher_iexpress.png" /&gt;&lt;/p&gt;
+&lt;p&gt;A little better, but all the common antiviruses still detect it. This includes Bitdefender standalone:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="BitDefender" src="http://lqdc.github.io/images/finfisher/bitdefender_iexpress.png" /&gt;&lt;/p&gt;
+&lt;p&gt;However, NortonAV doesn’t:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Norton IExpress" src="http://lqdc.github.io/images/finfisher/symantec_iexpress.png" /&gt;&lt;/p&gt;
+&lt;p&gt;In other words, &lt;strong&gt;we can simply use a built-in Windows tool to modify malware to bypass a mainstream antivirus&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;However, we would like to keep going and try to sneak FinFisher by as many antiviruses as possible.&lt;/p&gt;
+&lt;p&gt;Now, we’ll download Themida from its &lt;a href="http://www.oreans.com/themida.php&amp;quot;&amp;gt;official site"&gt;official site&lt;/a&gt; and use the demo version on our exe file with the default settings. This involves simply following through the menu options, so I will not show that here, but after packing, the standalone Bitdefender product doesn’t detect it:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="themida bitdefender" src="http://lqdc.github.io/images/finfisher/bitdefender_themida.png" /&gt;&lt;/p&gt;
+&lt;p&gt;And when we upload it to VirusTotal …&lt;/p&gt;
+&lt;p&gt;&lt;img alt="themida" src="http://lqdc.github.io/images/finfisher/finfisher_themida.png" /&gt;&lt;/p&gt;
+&lt;p&gt;We are just left with 7. However, based on the malware names, it looks like at least some of the antiviruses are protesting against the Themida packer instead of the malware.&lt;/p&gt;
+&lt;p&gt;Just to be sure, let’s package Windows Media Player with Themida and test the final product on VirusTotal:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="themida_wmp" src="http://lqdc.github.io/images/finfisher/wmplayer_themida.png" /&gt;&lt;/p&gt;
+&lt;p&gt;So just packaging a non-trivial windows application with a commercial packer gets you flagged by a number of antiviruses. Bad news for people using Themida for legitimate purposes.&lt;/p&gt;
+&lt;p&gt;Combining IExpress with Themida doesn’t result in much improvement over the plain Themida version, so I won’t show the results here.&lt;/p&gt;
+&lt;p&gt;Now let’s try VMProtect demo version that you can get from &lt;a href="http://vmpsoft.com/"&gt;here&lt;/a&gt; on the same file:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="vmprotect" src="http://lqdc.github.io/images/finfisher/ff_vmp.png" /&gt;&lt;/p&gt;
+&lt;p&gt;Looks like FinFisher is still detected inside. But what if we package the binary with IExpress followed by VMProtect?&lt;/p&gt;
+&lt;p&gt;&lt;img alt="ff_ie_vmp" src="http://lqdc.github.io/images/finfisher/ff_ie_vmp.png" /&gt;&lt;/p&gt;
+&lt;p&gt;(Almost) Success… Neither Symantec nor BitDefender standalone version detects our new packed malware.&lt;/p&gt;
+&lt;p&gt;Let’s add an image to our file. We are doing this because we want to mess with file entropy, increase the file size and make it harder to figure out where the actual code is. Different antiviruses rely on some or all of these attributes when searching for patterns in the binary file.&lt;/p&gt;
+&lt;p&gt;And after packaging them with IExpress and uploading to VT:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="ff-ie-vmp-ie" src="http://lqdc.github.io/images/finfisher/ff_ie_vmp_ie.png" /&gt;&lt;/p&gt;
+&lt;p&gt;The users of Bkav should be really happy right now. But from this process we can already see that using multiple packers is an extremely easy to execute and effective strategy to avoid AV detection.&lt;/p&gt;
+&lt;p&gt;Let’s not give up yet, though. What if we add all the built in Windows photos:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="default pics" src="http://lqdc.github.io/images/finfisher/default_pictures.png" /&gt;&lt;/p&gt;
+&lt;p&gt;to the bundled exe? This is done for the same reasons we added one image.&lt;/p&gt;
+&lt;p&gt;And…&lt;/p&gt;
+&lt;p&gt;It worked:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="ff_ie_vmp_ie" src="http://lqdc.github.io/images/finfisher/ffievmpie.png" /&gt;&lt;/p&gt;
+&lt;p&gt;So we bypassed all AV detection on VirusTotal, and also 2 of the top standalone products. We also didn’t have to do any programming at all. We simply used a demo version of a commercial packer and a built-in Windows utility.&lt;/p&gt;
+&lt;p&gt;However, how hard would it be to create our own FUD packer to hide FinFisher, or any other malware for that matter?&lt;/p&gt;
+&lt;h3&gt;Creating a custom FUD packer&lt;/h3&gt;
+&lt;p&gt;Where do we start? Well, we saw with the ZIP example, that packed code looks very different from actual code. Although humans could figure out what the malware is doing, it is much harder to teach an antivirus to figure out how to determine whether something looks suspicious.&lt;/p&gt;
+&lt;p&gt;Let’s try a very simple technique. It’s called &lt;a href="http://en.wikipedia.org/wiki/Base64"&gt;Base64 encoding&lt;/a&gt;. It corresponds to looking at numbers in base64 instead of our usual base10.&lt;/p&gt;
+&lt;p&gt;Specifically, what we are going to do is read in &lt;code&gt;n&lt;/code&gt; bytes at a time, convert them to base64, finish the line, read in &lt;code&gt;n&lt;/code&gt; bytes again and so on until we write out the whole file in base64. Then we’re going to create an executable from a PowerShell file that reads in base 64 and converts it back to bytes… but only after a user executes it. In other words, no signature would be able to find the virus and a typical AV won’t be able to do anything until it is too late.&lt;/p&gt;
+&lt;h4&gt;Part 0: Choosing the language to use:&lt;/h4&gt;
+&lt;p&gt;I &amp;lt;3 Python for scripting, so let’s try to write the packer in Python. Problem with Python is that it is not installed on Windows computers by default, so we need to make an exe file out of the Python script first.
+I used &lt;a href="http://www.py2exe.org/"&gt;py2exe&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Python code for the actual file:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;__name__&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;__main__&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;out_f_name&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;out_file.exe&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Almost nothing. Just a variable assignment. Then pack it with with the following code:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;distutils.core&lt;/span&gt; &lt;span class="k"&gt;import&lt;/span&gt; &lt;span class="n"&gt;setup&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;py2exe&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="nn"&gt;sys&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="nn"&gt;os&lt;/span&gt;
+
+&lt;span class="n"&gt;sys&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;argv&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;py2exe&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;setup&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="n"&gt;options&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;py2exe&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;bundle_files&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;compressed&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;True&lt;/span&gt;&lt;span class="p"&gt;}},&lt;/span&gt;
+    &lt;span class="n"&gt;windows&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;script&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;something.py&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;}],&lt;/span&gt;
+    &lt;span class="n"&gt;zipfile&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;None&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;And test the resulting file on VirusTotal:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="py2exe" src="http://lqdc.github.io/images/finfisher/py2exe.png" /&gt;&lt;/p&gt;
+&lt;p&gt;Ok, looks like we’re stuck getting detected even with a benign “hello world” program. Anyone who writes any program in Python and wants to make an installer with one of the most popular executable file generators is going to have their creation be labled as a virus by one of the AVs. We also see that just because something is labeled as malicious by one AV, it doesn’t necessarily mean that it is a virus.&lt;/p&gt;
+&lt;p&gt;Going through the same process with PowerShell and &lt;a href="http://ps2exe.codeplex.com/"&gt;PS2EXE&lt;/a&gt;, I got no false positives, so we’ll use PowerShell.&lt;/p&gt;
+&lt;h4&gt;Part I: Converting to base64&lt;/h4&gt;
+&lt;p&gt;This process is very simple in Python. Here’s the code:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;base64&lt;/span&gt; &lt;span class="k"&gt;import&lt;/span&gt; &lt;span class="n"&gt;b64encode&lt;/span&gt;
+
+&lt;span class="n"&gt;f_name1&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;r&amp;#39;C:\Users\John\Desktop\finfisher.1.exe&amp;#39;&lt;/span&gt;
+&lt;span class="n"&gt;f_name2&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;r&amp;#39;C:\Users\John\Desktop\finfisher_lines.b64&amp;#39;&lt;/span&gt;
+&lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="nb"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f_name1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;rb&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f_name2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;wb&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;f2&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;buf&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;buf&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;gt&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="n"&gt;f2&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;write&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;b64encode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;buf&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;&lt;/span&gt;&lt;span class="se"&gt;\r\n&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;buf&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We read in from &lt;code&gt;finfisher.1.exe&lt;/code&gt;, which is our malware, and convert to &lt;code&gt;finfisher_lines.b64&lt;/code&gt;, which is the same file encoded to base64 5 bytes at a time.&lt;/p&gt;
+&lt;h4&gt;Part II: Converting back to binary and executing&lt;/h4&gt;
+&lt;p&gt;Since we are in Windows land, we will have to use Windows tools for our packer.&lt;/p&gt;
+&lt;p&gt;PowerShell to the rescue:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;$data = Get-Content &amp;quot;finfisher_lines.b64&amp;quot;
+$vname = &amp;#39;C:\Windows\Temp\finfisher.exe&amp;#39;
+$s_o = new-object System.IO.FileStream($vname, [IO.FileMode]::Create, [IO.FileAccess]::Write,  [IO.FileShare]::None)
+foreach ($line in $data) {
+    $l = [System.Convert]::FromBase64String($line)
+    $s_o.Write($l, 0, $l.Length)
+
+}
+$s_o.close()
+Invoke-Item $vname
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;All we’re doing here is decoding from base64 and executing the resulting binary.&lt;/p&gt;
+&lt;p&gt;To make this PowerShell script into a binary, we’ll use PS2EXE with the following command&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;.\ps2exe.ps1 -verbose -inputFile C:\bin_writer.psl C:\final_bin.exe
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;After this we still have two files: &lt;code&gt;final_bin.exe&lt;/code&gt; and &lt;code&gt;finfisher_lines.b64&lt;/code&gt;
+that it consumes. To make one file, we just run IExpress again to bundle them together and submit to VirusTotal:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="custom_1" src="http://lqdc.github.io/images/finfisher/ff_custom1.png" /&gt;&lt;/p&gt;
+&lt;p&gt;Bkav again fighting a good fight.&lt;/p&gt;
+&lt;p&gt;Let’s trick it by doing the same thing we did with commercial packers - add some images to the file.&lt;/p&gt;
+&lt;p&gt;After adding the images, let’s upload to VirusTotal again:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="custom_2" src="http://lqdc.github.io/images/finfisher/final_bin_custom_2.png" /&gt;&lt;/p&gt;
+&lt;p&gt;Success! We now have a FUD packer.&lt;/p&gt;
+&lt;div id="chart"&gt;&lt;/div&gt;
+
+&lt;h3&gt;To Review&lt;/h3&gt;
+&lt;p&gt;We first encoded the original binary into base64, then we wrote a PowerShell script that reads the b64 file and converts it to back to binary file and launches it. Then we bundled the two files together using IExpress.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Almost any Windows malware can be packed and be rendered undetectable using this or similar strategy&lt;/strong&gt; with small variations.&lt;/p&gt;
+&lt;h3&gt;Sandbox analysis - an alternative detection strategy&lt;/h3&gt;
+&lt;p&gt;Although virus signatures is a useful tool for malware detection, antiviruses should not rely on it to such an extent. Users should have an option for more thorough file analysis, especially when they’re very suspicious of a specific file. The only solution that could have worked in this case is sandbox analysis.&lt;/p&gt;
+&lt;p&gt;Sandbox analysis works by running suspicious programs in an isolated enviornment and attempting to observe all activities the program partakes in. In cases where the program tries to perform suspicious activities such as recording keystrokes or connecting to known malicious domains, it would be marked as malicious. Packers would have no effect on this, because packing happens before execution. The program would still perform
+the same malicious activities, triggering detection by the sandbox. In our case, no matter how much we pack it, FinFisher would remain FinFisher.&lt;/p&gt;
+&lt;p&gt;A major downside of this strategy is computational cost. Antiviruses already tax the system they are installed on just by cross-referencing the contents of the binary against their signature databse. A separate virtual machine that acts as a sandbox may effectively double the computatinal cost of the plain system. If we assume AVs' current model of running analysis on the user's machine, this overhead may prohibitive.&lt;/p&gt;
+&lt;p&gt;One way to not annoy the users with the overhead and still use sandbox analysis is for the AV companies to send all the binaries to the cloud, which has its own downside of network bandwidth overhead, especially for large files.&lt;/p&gt;
+&lt;p&gt;Another way is for system administrators to install a network security platform that forks binaries traffic, analyses them in a sandbox and then quarantines the affected user if malicious behavior is detected.&lt;/p&gt;
+&lt;p&gt;As long as sandbox analysis is not implemented by the best AVs, journalists, activists and political dissidents are in danger of being infected with different versions of the same malware that are trivial to generate.&lt;/p&gt;
+&lt;h3&gt;What can be done to stop packer-backed malware proliferation?&lt;/h3&gt;
+&lt;p&gt;Users:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Power users can browse the internet from within a Virtual Machine (VM). Thus their main system / other VMs would not get infected and sensitive information would not be stolen.&lt;/li&gt;
+&lt;li&gt;Do not execute files of unknown origin.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;System Administrators&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Install and use a network security platform that monitors the network for malicious binaries/traffic and quarantines affected users.&lt;/li&gt;
+&lt;li&gt;Educate users about not downloading malicious attachments from emails. This would not stop users from being infected with droppers.&lt;/li&gt;
+&lt;li&gt;Block potentially compromised web sites that may host droppers that can launch such executables.&lt;/li&gt;
+&lt;li&gt;Allow only specific programs to run via Local Group Policy settings. An example of this is shown &lt;a href="http://www.sevenforums.com/tutorials/257189-applications-run-only-specified-programs-windows.html"&gt;here&lt;/a&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;TL;DR&lt;/h3&gt;
+&lt;p&gt;We can easily combine a few free tools or create a custom packer to pack FinFisher or other well-known malware to make it undetectable by current antiviruses. Sandbox analysis can be an effective strategy in defending against packers.&lt;/p&gt;
+&lt;pre id="csvdata"&gt;packer,frequency
+Original,43
+IExpress,24
+Themida,7
+VMP,13
+IE/VMP,2
+IE/VMP/IE,1
+IE/VMP/IE + Pics,0
+Python + py2exe,1
+PS,1
+PS + Pics,0
+&lt;/pre&gt;</summary><category term="malware"></category></entry><entry><title>Compiling NumPy and SciPy with Intel MKL</title><link href="http://lqdc.github.io/compiling-numpy-and-scipy-with-intel-mkl.html" rel="alternate"></link><updated>2013-04-07T07:09:00-07:00</updated><author><name>Roman Sinayev</name></author><id>tag:lqdc.github.io,2013-04-07:compiling-numpy-and-scipy-with-intel-mkl.html</id><summary type="html">&lt;p&gt;If you have an Intel processor, you can take advantage of the Intel MKL, which contains performance optimizations for math routines.  Although it works with AMD processors too, Atlas seems to be a better choice there.&lt;/p&gt;
+&lt;p&gt;Intel provides their own guide &lt;a href="http://software.intel.com/en-us/articles/numpyscipy-with-intel-mkl"&gt;here&lt;/a&gt;, however they skip on some details.&lt;/p&gt;
+&lt;p&gt;Below is how I compiled and tested numpy-1.8, scipy-0.13, and Intel MKL-11.0 on Ubuntu 12.10.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;1. See how fast your current numpy is:&lt;/strong&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;numpy&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="nn"&gt;np&lt;/span&gt;
+&lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;np&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;random&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;rand&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1000&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;1000&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;b&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;np&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;random&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;rand&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1000&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;1000&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="n"&gt;timeit&lt;/span&gt; &lt;span class="n"&gt;np&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;dot&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;I get the following on an i5-3570k machine:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="mi"&gt;10&lt;/span&gt; &lt;span class="n"&gt;loops&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;best&lt;/span&gt; &lt;span class="n"&gt;of&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mf"&gt;68.7&lt;/span&gt; &lt;span class="n"&gt;ms&lt;/span&gt; &lt;span class="n"&gt;per&lt;/span&gt; &lt;span class="n"&gt;loop&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;You can also check the default config &lt;code&gt;numpy.show_config()&lt;/code&gt;.  On Ubuntu, the default is the following:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;blas_info&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;libraries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;blas&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;library_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;/usr/lib&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;language&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;f77&lt;/span&gt;
+&lt;span class="n"&gt;lapack_info&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;libraries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;lapack&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;library_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;/usr/lib&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;language&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;f77&lt;/span&gt;
+&lt;span class="n"&gt;atlas_threads_info&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;NOT&lt;/span&gt; &lt;span class="n"&gt;AVAILABLE&lt;/span&gt;
+&lt;span class="n"&gt;blas_opt_info&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;libraries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;blas&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;library_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;/usr/lib&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;language&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;f77&lt;/span&gt;
+    &lt;span class="n"&gt;define_macros&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;[(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;NO_ATLAS_INFO&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;)]&lt;/span&gt;
+&lt;span class="n"&gt;atlas_blas_threads_info&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;NOT&lt;/span&gt; &lt;span class="n"&gt;AVAILABLE&lt;/span&gt;
+&lt;span class="n"&gt;lapack_opt_info&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;libraries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;lapack&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;blas&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;library_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;/usr/lib&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;language&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;f77&lt;/span&gt;
+    &lt;span class="n"&gt;define_macros&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;[(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;NO_ATLAS_INFO&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;)]&lt;/span&gt;
+&lt;span class="n"&gt;atlas_info&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;NOT&lt;/span&gt; &lt;span class="n"&gt;AVAILABLE&lt;/span&gt;
+&lt;span class="n"&gt;lapack_mkl_info&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;NOT&lt;/span&gt; &lt;span class="n"&gt;AVAILABLE&lt;/span&gt;
+&lt;span class="n"&gt;blas_mkl_info&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;NOT&lt;/span&gt; &lt;span class="n"&gt;AVAILABLE&lt;/span&gt;
+&lt;span class="n"&gt;atlas_blas_info&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;NOT&lt;/span&gt; &lt;span class="n"&gt;AVAILABLE&lt;/span&gt;
+&lt;span class="n"&gt;mkl_info&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;NOT&lt;/span&gt; &lt;span class="n"&gt;AVAILABLE&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;strong&gt;2. Get the software:&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Intel Compilers and MKL:&lt;/p&gt;
+&lt;p&gt;Intel only provides MKL for free for Non-Commercial purposes.
+Get it from their site along with the compiler and a bunch of other useful stuff. I got the Intel Parallel Studio that includes the necessary icc and ifort compilers from &lt;a href="http://software.intel.com/en-us/non-commercial-software-development"&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;SciPy and NumPy from Github:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;git clone https://github.com/scipy/scipy.git
+git clone https://github.com/numpy/numpy.git
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;strong&gt;3. Get rid of your old numpy and scipy (optional):&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;On Linux:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;sudo apt-get remove python-numpy python-scipy
+&lt;span class="c"&gt;# or do via pip uninstall if it was installed with pip&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;strong&gt;4. Install MKL and Intel/Fortran Compilers&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Here you just download the software and run the bash script to install it.  On Linux the default installation dir is &lt;code&gt;/opt/intel/&lt;/code&gt;. &lt;/p&gt;
+&lt;p&gt;You should also add the environmental variables to your shell.  As per Intel's suggestion at the end of the installation, add something like the following to &lt;code&gt;.bashrc&lt;/code&gt; or &lt;code&gt;.profile&lt;/code&gt; or &lt;code&gt;.bash_profile&lt;/code&gt;:
+&lt;code&gt;source /opt/intel/bin/compilervars.sh intel64&lt;/code&gt;.  This runs a number of scripts that modify your &lt;code&gt;$LD_LIBRARY_PATH&lt;/code&gt; variable.
+Now you should be able to call &lt;code&gt;icc --help&lt;/code&gt; in a new terminal window.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;5. Prepare NumPy for compilation&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Go into the numpy directory you created and add the following to the &lt;code&gt;site.cfg&lt;/code&gt; file:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;[mkl]&lt;/span&gt;
+&lt;span class="na"&gt;library_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;/opt/intel/mkl/composer_xe_2013/lib/intel64&lt;/span&gt;
+&lt;span class="na"&gt;include_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;/opt/intel/mkl/include&lt;/span&gt;
+&lt;span class="na"&gt;mkl_libs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;mkl_rt&lt;/span&gt;
+&lt;span class="na"&gt;lapack_libs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;If you are building NumPy for 32 bit, please add as the following&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="na"&gt;[mkl] library_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;/opt/intel/composer_xe_2013/mkl/lib/ia32&lt;/span&gt;
+&lt;span class="na"&gt;include_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;/opt/intel/mkl/include&lt;/span&gt;
+&lt;span class="na"&gt;mkl_libs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;mkl_rt&lt;/span&gt;
+&lt;span class="na"&gt;lapack_libs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Now modify &lt;code&gt;intelcompiler.py&lt;/code&gt; in the &lt;code&gt;/numpy/numpy/distutils&lt;/code&gt; directory:
+There are currently three classes in the file.  You would need to modify the one that's based on your architecture.
+If you use 64 bit, modify &lt;code&gt;IntelEM64TCCompiler&lt;/code&gt; class by modifying &lt;code&gt;self.cc_exe&lt;/code&gt; to be something like&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cc_exe&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;icc -O3 -g -fPIC -fp-model strict -fomit-frame-pointer -openmp -xhost&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;If you use 32 bit, modify the IntelCCompiler's &lt;code&gt;self.cc_exe&lt;/code&gt; to something similar to the above.  &lt;/p&gt;
+&lt;p&gt;The exact configuration is going to depend on your needs and computer, but you can check what all the options mean by running &lt;code&gt;icc --help&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Intel also suggests to modify the fortran compiler options, but they are already set to the suggested values.  In case you want to modify them, they are in &lt;code&gt;numpy/numpy/distutils/fcompiler/intel.py&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;6. Compile Numpy and Scipy&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Run the following in the numpy directory:&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Replace &lt;code&gt;intelem&lt;/code&gt; with &lt;code&gt;intel&lt;/code&gt; on 32 bit machines.&lt;/em&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;python setup.py config --compiler&lt;span class="o"&gt;=&lt;/span&gt;intelem build_clib --compiler&lt;span class="o"&gt;=&lt;/span&gt;intelem build_ext --compiler&lt;span class="o"&gt;=&lt;/span&gt;intelem install
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;If you want to install to user home dir, add &lt;code&gt;--prefix=$HOME/.local&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Run the following in the scipy directory:&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Replace &lt;code&gt;intelem&lt;/code&gt; with &lt;code&gt;intel&lt;/code&gt; on 32 bit machines.&lt;/em&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;python setup.py config --compiler&lt;span class="o"&gt;=&lt;/span&gt;intelem --fcompiler&lt;span class="o"&gt;=&lt;/span&gt;intelem build_clib&lt;span class="se"&gt;\&lt;/span&gt;
+ --compiler&lt;span class="o"&gt;=&lt;/span&gt;intelem --fcompiler&lt;span class="o"&gt;=&lt;/span&gt;intelem build_ext --compiler&lt;span class="o"&gt;=&lt;/span&gt;intelem --fcompiler&lt;span class="o"&gt;=&lt;/span&gt;intelem install
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;strong&gt;7. You're done!&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Now, check the dot product again in a new terminal window:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;numpy&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="nn"&gt;np&lt;/span&gt;
+&lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;np&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;random&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;rand&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1000&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;1000&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;b&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;np&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;random&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;rand&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1000&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;1000&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="n"&gt;timeit&lt;/span&gt; &lt;span class="n"&gt;np&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;dot&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="c"&gt;# 10 loops, best of 3: 23.1 ms per loop&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;My &lt;code&gt;numpy.show_config()&lt;/code&gt; looks like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;lapack_opt_info&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;libraries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;mkl_rt&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;pthread&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;library_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;/opt/intel/mkl/lib/intel64&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;define_macros&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;SCIPY_MKL_H&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;None&lt;/span&gt;&lt;span class="p"&gt;)]&lt;/span&gt;
+    &lt;span class="n"&gt;include_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;/opt/intel/mkl/include&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;blas_opt_info&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;libraries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;mkl_rt&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;pthread&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;library_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;/opt/intel/mkl/lib/intel64&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;define_macros&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;SCIPY_MKL_H&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;None&lt;/span&gt;&lt;span class="p"&gt;)]&lt;/span&gt;
+    &lt;span class="n"&gt;include_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;/opt/intel/mkl/include&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;lapack_mkl_info&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;libraries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;mkl_rt&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;pthread&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;library_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;/opt/intel/mkl/lib/intel64&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;define_macros&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;SCIPY_MKL_H&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;None&lt;/span&gt;&lt;span class="p"&gt;)]&lt;/span&gt;
+    &lt;span class="n"&gt;include_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;/opt/intel/mkl/include&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;blas_mkl_info&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;libraries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;mkl_rt&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;pthread&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;library_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;/opt/intel/mkl/lib/intel64&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;define_macros&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;SCIPY_MKL_H&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;None&lt;/span&gt;&lt;span class="p"&gt;)]&lt;/span&gt;
+    &lt;span class="n"&gt;include_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;/opt/intel/mkl/include&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;mkl_info&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;libraries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;mkl_rt&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;pthread&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;library_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;/opt/intel/mkl/lib/intel64&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;define_macros&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;SCIPY_MKL_H&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;None&lt;/span&gt;&lt;span class="p"&gt;)]&lt;/span&gt;
+    &lt;span class="n"&gt;include_dirs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;/opt/intel/mkl/include&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</summary><category term="MKL"></category><category term="numpy"></category><category term="scipy"></category></entry></feed>
